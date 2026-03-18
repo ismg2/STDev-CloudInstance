@@ -95,37 +95,44 @@ def plot_memory(df=None, board_filter=None):
     plt.show()
 
 
-def plot_precision(df=None):
-    """Bar chart of model precision/accuracy if available."""
+def plot_accuracy(df=None):
+    """Bar chart of model accuracy — from val_metrics[].acc field."""
     if df is None:
         df = load_results()
     if not _check_data(df):
         return
 
     df = df.copy()
-    df["precision"] = _to_numeric(df["precision"])
-    df = df.dropna(subset=["precision"])
+    # Support both old 'precision' column and new 'accuracy' column
+    acc_col = "accuracy" if "accuracy" in df.columns else "precision"
+    df[acc_col] = _to_numeric(df[acc_col])
+    df = df.dropna(subset=[acc_col])
     if df.empty:
-        print("  Pas de donnees de precision disponibles.")
+        print("  Pas de donnees d'accuracy disponibles.")
+        print("  (L'accuracy est fournie par l'API uniquement si le modele a ete valide)")
         return
 
     labels = df["modele"].tolist()
 
     fig, ax = plt.subplots(figsize=(max(8, len(df) * 1.2), 6))
-    bars = ax.bar(range(len(df)), df["precision"], color="#9C27B0", edgecolor="white")
+    bars = ax.bar(range(len(df)), df[acc_col], color="#9C27B0", edgecolor="white")
     ax.set_xticks(range(len(df)))
     ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=8)
-    ax.set_ylabel("Precision (%)")
-    ax.set_title("Precision des modeles")
+    ax.set_ylabel("Accuracy (%)")
+    ax.set_title("Accuracy des modeles (val_metrics.acc)")
     ax.set_ylim(0, 105)
     ax.grid(axis="y", alpha=0.3)
 
-    for bar, val in zip(bars, df["precision"]):
+    for bar, val in zip(bars, df[acc_col]):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
                 f"{val:.1f}%", ha="center", va="bottom", fontsize=8)
 
     plt.tight_layout()
     plt.show()
+
+
+# Keep old name as alias for backwards compat
+plot_precision = plot_accuracy
 
 
 def plot_comparison_dashboard(df=None, board_filter=None):
@@ -219,7 +226,7 @@ def interactive_dashboard():
         elif choice == "2":
             plot_memory()
         elif choice == "3":
-            plot_precision()
+            plot_accuracy()
         elif choice == "4":
             plot_comparison_dashboard()
         elif choice == "5":

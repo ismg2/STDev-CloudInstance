@@ -1,77 +1,145 @@
 """Configuration for STEdgeAI Developer Cloud CLI.
 
-Endpoints sourced from ST official backend:
-https://github.com/STMicroelectronics/stm32ai-modelzoo-services
+Endpoints and parameters sourced from:
+  - ST official backend: STMicroelectronics/stm32ai-modelzoo-services
+  - ST Edge AI Core 4.0 documentation (Documentation/ST Edge AI Core 4.0/)
 """
 
 import os
 
-# --- STEdgeAI Developer Cloud Base URL ---
-BASE_URL = os.environ.get("BASE_URL_DEVCLOUD", "https://stedgeai-dc.st.com/")
+# ---------------------------------------------------------------------------
+# URLs
+# ---------------------------------------------------------------------------
 
-# Ensure trailing slash
+BASE_URL = os.environ.get("BASE_URL_DEVCLOUD", "https://stedgeai-dc.st.com/")
 if not BASE_URL.endswith("/"):
     BASE_URL += "/"
 
-# --- Service Endpoints (exact paths from ST source) ---
-USER_SERVICE_URL    = f"{BASE_URL}api/user_service"
-FILE_SERVICE_URL    = f"{BASE_URL}api/file"
-BENCHMARK_URL       = f"{BASE_URL}api/benchmark"
-VERSIONS_URL        = f"{BASE_URL}assets/versions.json"
-CALLBACK_URL        = f"{BASE_URL}callback"
+USER_SERVICE_URL  = f"{BASE_URL}api/user_service"
+FILE_SERVICE_URL  = f"{BASE_URL}api/file"
+BENCHMARK_URL     = f"{BASE_URL}api/benchmark"
+VERSIONS_URL      = f"{BASE_URL}assets/versions.json"
+CALLBACK_URL      = f"{BASE_URL}callback"
 
-# STM32AI service URL is version-dependent: {BASE_URL}api/{version}/stm32ai/
-# Built dynamically in cloud_api.py
-
-# --- SSO / OAuth2 ---
-SSO_URL    = os.environ.get("SSO_URL", "https://sso.st.com")
-CLIENT_ID  = os.environ.get("CLIENTID", "oidc_prod_client_app_stm32ai")
-
-# --- Routes derived from services ---
 # File service sub-routes
-MODELS_ROUTE              = f"{FILE_SERVICE_URL}/files/models"
-VALIDATION_INPUTS_ROUTE   = f"{FILE_SERVICE_URL}/files/validation/inputs"
-VALIDATION_OUTPUTS_ROUTE  = f"{FILE_SERVICE_URL}/files/validation/outputs"
-GENERATED_FILES_ROUTE     = f"{FILE_SERVICE_URL}/files/generated"
+MODELS_ROUTE             = f"{FILE_SERVICE_URL}/files/models"
+VALIDATION_INPUTS_ROUTE  = f"{FILE_SERVICE_URL}/files/validation/inputs"
+VALIDATION_OUTPUTS_ROUTE = f"{FILE_SERVICE_URL}/files/validation/outputs"
+GENERATED_FILES_ROUTE    = f"{FILE_SERVICE_URL}/files/generated"
 
 # Benchmark sub-routes
 BENCHMARK_BOARDS_ROUTE = f"{BENCHMARK_URL}/boards"
 
-# User service sub-routes
+# User / Login sub-routes
 LOGIN_CALLBACK_ROUTE = f"{USER_SERVICE_URL}/login/callback"
 LOGIN_REFRESH_ROUTE  = f"{USER_SERVICE_URL}/login/refresh"
-USER_AUTHENTICATE    = f"{USER_SERVICE_URL}/login/authenticate"
 
-# --- Token Storage ---
-TOKEN_FILE = os.path.expanduser("~/.stmai_token")
+# SSO / OAuth2
+SSO_URL   = os.environ.get("SSO_URL", "https://sso.st.com")
+CLIENT_ID = os.environ.get("CLIENTID", "oidc_prod_client_app_stm32ai")
 
-# --- Project Paths ---
+# ---------------------------------------------------------------------------
+# ST Edge AI Core 4.0 CLI Parameters
+# Source: Documentation/ST Edge AI Core 4.0/command_line_interface.html
+# ---------------------------------------------------------------------------
+
+# -O / --optimization
+OPTIMIZATION_OPTIONS = {
+    "balanced": "Equilibre RAM et temps d'inference (defaut)",
+    "ram":      "Minimise l'utilisation de la RAM",
+    "time":     "Minimise la latence d'inference",
+    "size":     "Minimise la taille du modele",
+}
+OPTIMIZATION_DEFAULT = "balanced"
+
+# -c / --compression
+COMPRESSION_OPTIONS = {
+    "none":     "Aucune compression",
+    "lossless": "Compression structurelle sans perte (defaut)",
+    "low":      "Compression x4 des couches denses",
+    "medium":   "Compression x8, plus agressive",
+    "high":     "Compression extreme",
+}
+COMPRESSION_DEFAULT = "lossless"
+
+# -t / --type  (framework du modele)
+MODEL_TYPE_OPTIONS = {
+    "keras":  "Modele Keras (.h5, .keras)",
+    "tflite": "Modele TensorFlow Lite (.tflite)",
+    "onnx":   "Modele ONNX (.onnx)",
+}
+
+# Mapping extension -> type automatique
+EXTENSION_TO_TYPE = {
+    ".h5":    "keras",
+    ".keras": "keras",
+    ".tflite":"tflite",
+    ".onnx":  "onnx",
+    ".pb":    "keras",
+}
+
+# --input-data-type / --output-data-type
+DATA_TYPE_OPTIONS = ["float32", "int8", "uint8"]
+
+# -v / --verbosity
+VERBOSITY_OPTIONS = {
+    0: "Silencieux",
+    1: "Normal (defaut)",
+    2: "Detaille",
+    3: "Debug",
+}
+
+# ---------------------------------------------------------------------------
+# Metrics retournees par l'API (depuis evaluation_metrics.html)
+# ---------------------------------------------------------------------------
+# Champs JSON dans les resultats de validation/benchmark:
+#   acc       - Accuracy (classification)
+#   rmse      - Root Mean Square Error
+#   mae       - Mean Absolute Error
+#   l2r       - L2 relative error
+#   snr       - Signal to Noise Ratio
+#   nse       - Nash-Sutcliffe efficiency
+#   f1_score  - F1 score
+#   variance  - Variance
+
+# ---------------------------------------------------------------------------
+# Chemins projet
+# ---------------------------------------------------------------------------
+
+TOKEN_FILE  = os.path.expanduser("~/.stmai_token")
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR  = os.path.join(PROJECT_DIR, "modeles")
 RESULTS_DIR = os.path.join(PROJECT_DIR, "resultats")
 RESULTS_CSV = os.path.join(RESULTS_DIR, "resultats.csv")
 
-# --- Supported Model Extensions ---
-MODEL_EXTENSIONS = {".tflite", ".h5", ".onnx", ".keras", ".pb"}
+# ST Edge AI Core 4.0 (version courante)
+STEDGEAI_DEFAULT_VERSION = os.environ.get("STEDGEAI_VERSION", "4.0.0")
 
-# --- Default STEdgeAI version (fetched from API at runtime if possible) ---
-# The actual latest version is resolved dynamically via get_latest_version()
-STEDGEAI_DEFAULT_VERSION = os.environ.get("STEDGEAI_VERSION", "10.0.0")
-
-# --- SSL ---
-# Set NO_SSL_VERIFY=1 to disable SSL verification (corporate proxy environments)
+# SSL
 SSL_VERIFY = os.environ.get("NO_SSL_VERIFY", "") == ""
 
-# --- CSV Columns ---
+# Formats supportes
+MODEL_EXTENSIONS = {".tflite", ".h5", ".onnx", ".keras", ".pb"}
+
+# ---------------------------------------------------------------------------
+# Colonnes CSV des resultats
+# ---------------------------------------------------------------------------
 CSV_COLUMNS = [
     "modele",
     "dossier",
+    "type_framework",
     "board",
+    "optimization",
+    "compression",
     "inference_time_ms",
     "ram_ko",
     "rom_ko",
     "macc",
-    "precision",
+    "params",
+    "accuracy",
+    "rmse",
+    "mae",
+    "l2r",
     "date",
     "status",
 ]
