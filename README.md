@@ -1,66 +1,61 @@
-# CLI Model Zoo Benchmark — ST Edge AI Developer Cloud
+# CLI Model Zoo Benchmark — ST Edge AI Core 4.0
 
-Script Python interactif pour **benchmarker tes modèles AI** (TFLite, ONNX, Keras, H5)
-sur des boards STM32 réelles via le [ST Edge AI Developer Cloud](https://stedgeai-dc.st.com).
+Script Python interactif pour **benchmarker tes modèles AI** sur des boards STM32 réelles
+via le [ST Edge AI Developer Cloud](https://stedgeai-dc.st.com).
+
+> Basé sur **ST Edge AI Core 4.0** — Documentation officielle incluse dans `Documentation/`
 
 ---
 
 ## Ce que fait ce projet
 
 ```
-Tes modèles (.tflite, .onnx...)
-        ↓
-  Ce script CLI
-        ↓
-ST Edge AI Developer Cloud (API REST)
-        ↓
-Boards STM32 physiques chez ST
-        ↓
-Résultats : inference time, RAM, ROM, MACC
-        ↓
-Fichier CSV + Graphiques comparatifs
+Tes modèles (.tflite / .onnx / .h5 / .keras)
+             ↓
+    Ce script CLI interactif
+             ↓
+  ST Edge AI Developer Cloud (API REST)
+             ↓
+  Boards STM32 physiques chez ST
+    STM32H747I-DISCO, STM32N6570-DK...
+             ↓
+Résultats : inference time · RAM · ROM · MACC · Accuracy
+             ↓
+  CSV automatique + Graphiques comparatifs
 ```
 
 ---
 
 ## Prérequis
 
-- Python 3.8 ou supérieur
+- **Python 3.8+**
 - Un compte **myST** gratuit → [https://my.st.com](https://my.st.com)
 - Connexion internet
 
 ---
 
-## Installation pas à pas
+## Installation
 
 ### 1. Récupérer le projet
 
-**Méthode A — Télécharger le ZIP (débutant)**
-```
-GitHub → bouton vert "Code" → Download ZIP → extraire le dossier
-```
-
-**Méthode B — Git clone (recommandé)**
 ```bash
 git clone https://github.com/ismg2/STDev-CloudInstance.git
 cd STDev-CloudInstance
 ```
 
-### 2. Installer les dépendances Python
+Ou : GitHub → bouton vert **Code** → **Download ZIP** → extraire.
+
+### 2. Installer les dépendances
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> Si tu as plusieurs versions de Python : `pip3 install -r requirements.txt`
-
-### 3. Lancer le script
+### 3. Lancer
 
 ```bash
 python main.py
 ```
-
-> Sur Mac/Linux : `python3 main.py`
 
 ---
 
@@ -72,11 +67,15 @@ python main.py
 python main.py
 ```
 
-Tu arrives sur un menu guidé :
 ```
-══════════════════════════════════════════════════════
+╔══════════════════════════════════════════════════════╗
+║       CLI Model Zoo Benchmark                        ║
+║       ST Edge AI Core 4.0 — Developer Cloud          ║
+╚══════════════════════════════════════════════════════╝
+
+══════════════════════════════════════════════════
   MENU PRINCIPAL
-══════════════════════════════════════════════════════
+══════════════════════════════════════════════════
   [1] Voir les modèles disponibles
   [2] Lancer un benchmark
   [3] Voir les résultats
@@ -85,21 +84,21 @@ Tu arrives sur un menu guidé :
   [Q] Quitter
 ```
 
-### Commandes directes (mode ligne de commande)
+### Commandes directes
 
 ```bash
-python main.py --benchmark       # Lancer un benchmark directement
-python main.py --results         # Afficher les résultats CSV
-python main.py --visualize       # Ouvrir les graphiques
-python main.py --models          # Lister les modèles disponibles
+python main.py --benchmark                          # Benchmark guidé
+python main.py --results                            # Tableau des résultats
 python main.py --results --board STM32H747I-DISCO   # Filtrer par board
+python main.py --visualize                          # Graphiques
+python main.py --models                             # Lister les modèles
 ```
 
 ---
 
 ## Organiser ses modèles
 
-Place tes modèles dans le dossier `modeles/` avec des sous-dossiers pour t'organiser :
+Place tes fichiers dans `modeles/` avec des sous-dossiers :
 
 ```
 modeles/
@@ -107,33 +106,65 @@ modeles/
 │   ├── mobilenet_v1.tflite
 │   └── efficientnet_lite.tflite
 ├── detection/
-│   ├── ssd_mobilenet.tflite
-│   └── yolo_tiny.onnx
+│   └── ssd_mobilenet.onnx
 └── custom/
-    └── mon_modele.h5
+    └── mon_reseau.h5
 ```
 
-**Formats supportés :** `.tflite`, `.h5`, `.onnx`, `.keras`, `.pb`
+**Formats supportés :**
 
-Le script navigue interactivement dans ces dossiers au moment de choisir quoi benchmarker.
+| Extension | Framework | Notes |
+|-----------|-----------|-------|
+| `.tflite` | TensorFlow Lite | Recommandé pour MCU |
+| `.h5`     | Keras | Modèle complet |
+| `.keras`  | Keras | Format SavedModel |
+| `.onnx`   | ONNX | 102 opérateurs supportés |
+| `.pb`     | TensorFlow | SavedModel format |
+
+---
+
+## Options de compilation ST Edge AI Core 4.0
+
+Au moment d'un benchmark, le script te propose :
+
+### Optimisation (`-O`)
+
+| Option | Description |
+|--------|-------------|
+| `balanced` | **Défaut** — équilibre RAM et latence |
+| `ram` | Minimise la consommation RAM |
+| `time` | Minimise le temps d'inférence |
+| `size` | Minimise la taille du modèle |
+
+### Compression (`-c`)
+
+| Option | Description |
+|--------|-------------|
+| `lossless` | **Défaut** — compression structurelle sans perte |
+| `none` | Aucune compression |
+| `low` | Facteur ~4× sur les couches denses |
+| `medium` | Facteur ~8×, plus agressive |
+| `high` | Compression extrême |
 
 ---
 
 ## Authentification (Bearer Token)
 
-**Tes credentials ne sont JAMAIS stockés en clair dans le code.**
+**Tes credentials ne sont jamais stockés en clair.**
 
-Au premier lancement, le script demande ton email/mot de passe myST :
+Au premier lancement :
 ```
 [Auth] Connexion au ST Edge AI Developer Cloud
   Email (username myST) : ton@email.com
-  Mot de passe          : ********
+  Mot de passe          : ••••••••
+[Auth] Connexion réussie!
 ```
 
-Ensuite, le token Bearer est sauvegardé chiffré dans `~/.stmai_token` et
-**réutilisé automatiquement** (refresh silencieux) lors des prochains lancements.
+Le token Bearer OAuth2 est ensuite **mis en cache** dans `~/.stmai_token` et
+**rafraîchi automatiquement** à chaque session. Tu ne retapes tes credentials que si
+le token expire complètement (tous les ~30 jours).
 
-### Variables d'environnement (optionnel — pour automatisation)
+### Automatisation (CI/CD)
 
 ```bash
 export stmai_username="ton@email.com"
@@ -141,31 +172,36 @@ export stmai_password="ton_mot_de_passe"
 python main.py --benchmark
 ```
 
-> ⚠️ Ne jamais committer ces variables. Utilise un fichier `.env` non versionné.
+> ⚠️ N'ajoute **jamais** ces variables dans le code ou dans un fichier versionné.
+
+### Supprimer le token mis en cache
+
+```bash
+rm ~/.stmai_token
+```
 
 ---
 
-## Résultats
+## Résultats CSV
 
-Tous les résultats sont sauvegardés dans `resultats/resultats.csv` :
+Tous les résultats s'accumulent dans `resultats/resultats.csv` :
 
 ```
-modele;dossier;board;inference_time_ms;ram_ko;rom_ko;macc;precision;date;status
-mobilenet_v1.tflite;classification;STM32H747I-DISCO;12.3;245.5;890.2;28500000;N/A;2026-03-18 16:00:00;OK
+modele;dossier;type_framework;board;optimization;compression;
+inference_time_ms;ram_ko;rom_ko;macc;params;accuracy;rmse;mae;l2r;date;status
 ```
 
-| Colonne | Description |
-|---------|-------------|
-| `modele` | Nom du fichier modèle |
-| `dossier` | Sous-dossier dans `modeles/` |
-| `board` | Board STM32 utilisée |
-| `inference_time_ms` | Temps d'inférence en millisecondes |
-| `ram_ko` | Consommation RAM en Ko |
-| `rom_ko` | Consommation Flash/ROM en Ko |
-| `macc` | Nombre d'opérations (Multiply-Accumulate) |
-| `precision` | Précision/accuracy si disponible |
-| `date` | Horodatage du benchmark |
-| `status` | OK ou message d'erreur |
+| Colonne | Source | Description |
+|---------|--------|-------------|
+| `inference_time_ms` | `exec_time.duration_ms` | Temps d'inférence sur board réelle (ms) |
+| `ram_ko` | `memory_footprint.activations + io + kernel_ram` | RAM totale (Ko) |
+| `rom_ko` | `memory_footprint.weights + kernel_flash` | Flash/ROM totale (Ko) |
+| `macc` | somme `nodes[].macc` | Opérations Multiply-Accumulate |
+| `params` | somme `nodes[].params` | Nombre de paramètres |
+| `accuracy` | `val_metrics[].acc` | Précision du modèle (%) |
+| `rmse` | `val_metrics[].rmse` | Root Mean Square Error |
+| `mae` | `val_metrics[].mae` | Mean Absolute Error |
+| `l2r` | `val_metrics[].l2r` | Erreur relative L2 |
 
 ---
 
@@ -175,11 +211,12 @@ mobilenet_v1.tflite;classification;STM32H747I-DISCO;12.3;245.5;890.2;28500000;N/
 python main.py --visualize
 ```
 
-Ou depuis le menu `[4]`. Tu obtiens des graphiques comparatifs :
-
+Graphiques disponibles :
 - **Temps d'inférence** — barres par modèle/board
-- **Mémoire (RAM + ROM)** — barres groupées
-- **Précision** — si des valeurs sont renseignées
+- **RAM + ROM** — barres groupées comparatives
+- **Accuracy** — si disponible dans les résultats
+- **Dashboard complet** — tous les graphiques côte à côte
+- **Filtrage par board**
 
 ---
 
@@ -187,96 +224,132 @@ Ou depuis le menu `[4]`. Tu obtiens des graphiques comparatifs :
 
 ```
 STDev-CloudInstance/
-├── main.py              # Point d'entrée — menus CLI interactifs
-├── auth.py              # Authentification OAuth2/Bearer (ST SSO)
-├── cloud_api.py         # Client API REST STEdgeAI Developer Cloud
-├── config.py            # Endpoints, chemins, configuration
-├── model_discovery.py   # Navigation interactive dans modeles/
-├── results_manager.py   # Lecture/écriture CSV des résultats
-├── dashboard.py         # Graphiques matplotlib
-├── requirements.txt     # Dépendances Python
-├── modeles/             # ← Mets tes modèles ici
-└── resultats/           # ← CSV généré automatiquement ici
+├── main.py               # Menus CLI interactifs + argparse
+├── auth.py               # Authentification OAuth2/SSO ST
+├── cloud_api.py          # Client API REST STEdgeAI Developer Cloud
+├── config.py             # Endpoints, paramètres CLI, chemins
+├── model_discovery.py    # Navigation interactive dans modeles/
+├── results_manager.py    # CSV résultats (pandas)
+├── dashboard.py          # Graphiques matplotlib
+├── requirements.txt      # Dépendances Python
+├── Documentation/
+│   └── ST Edge AI Core 4.0/   # Doc officielle ST (HTML)
+├── modeles/              # ← Place tes modèles ici
+└── resultats/            # ← CSV généré automatiquement
+```
+
+---
+
+## Comment accéder à ses fichiers (cloud → local)
+
+> **Contexte :** Ce projet tourne sur une instance cloud accessible via navigateur.
+> Tes fichiers sont hébergés sur cette machine virtuelle ET sur GitHub.
+
+### Schéma
+
+```
+TON NAVIGATEUR (Claude Code)
+        │
+        ▼
+INSTANCE CLOUD  (/home/user/STDev-CloudInstance/)
+        │
+        │  git push
+        ▼
+GITHUB  (github.com/ismg2/STDev-CloudInstance)
+        │
+        │  git clone / Download ZIP
+        ▼
+TON PC LOCAL
+```
+
+### Récupérer le projet sur ton PC
+
+**Option A — ZIP (débutant, sans Git)**
+```
+https://github.com/ismg2/STDev-CloudInstance
+→ Bouton vert "Code" → Download ZIP → Extraire
+```
+
+**Option B — Git clone**
+```bash
+git clone https://github.com/ismg2/STDev-CloudInstance.git
+```
+
+**Option C — Éditer directement dans le navigateur**
+```
+https://github.dev/ismg2/STDev-CloudInstance
+```
+VS Code s'ouvre dans le navigateur, sans rien installer.
+
+---
+
+## Best practices Git — Que faire si le push échoue ?
+
+| Erreur | Cause | Solution |
+|--------|-------|----------|
+| `403 Permission denied` | Token GitHub expiré ou mauvais remote | Vérifier : `git remote -v` · Re-auth GitHub |
+| `rejected non-fast-forward` | Remote a avancé (commit d'un autre) | `git pull --rebase origin main` puis `git push` |
+| `RPC failed HTTP 403` | Session proxy expirée (instance cloud) | Attendre et réessayer · La session se renouvelle |
+| Push échoue mais commit fait | **Rien n'est perdu !** | `git log` confirme les commits locaux |
+
+**Règle d'or : le push est idempotent. Si ça échoue, relance. Le commit local est toujours là.**
+
+### Créer une sauvegarde portable si tout échoue
+
+```bash
+# Archive complète avec historique git
+git bundle create ~/STDev-CloudInstance.bundle --all
+
+# Restaurer sur un autre PC
+git clone STDev-CloudInstance.bundle STDev-CloudInstance
 ```
 
 ---
 
 ## FAQ
 
-**Q : J'ai une erreur `ModuleNotFoundError`**
+**Q : Erreur `ModuleNotFoundError`**
 ```bash
 pip install -r requirements.txt
 ```
 
-**Q : Le login échoue avec "identifiants invalides"**
-→ Vérifie ton compte sur [my.st.com](https://my.st.com). Après 5 échecs, le compte est bloqué temporairement.
+**Q : Login échoue "identifiants invalides"**
+→ Vérifie sur [my.st.com](https://my.st.com). Après 5 échecs le compte est bloqué temporairement.
 
-**Q : Comment supprimer le token sauvegardé (pour changer de compte) ?**
+**Q : Le benchmark prend 5-10 minutes**
+→ Normal. Le modèle est compilé avec ST Edge AI Core, flashé sur une board STM32 physique chez ST, puis mesuré. La queue peut être longue aux heures de pointe.
+
+**Q : Mon modèle est refusé**
+→ Vérifie la compatibilité des opérateurs dans `Documentation/ST Edge AI Core 4.0/supported_ops_tflite.html`
+
+**Q : Quelle version STEdgeAI est utilisée ?**
+→ La dernière version disponible est détectée automatiquement au démarrage (actuellement **4.0.0**).
+
+**Q : Changer de compte myST**
 ```bash
 rm ~/.stmai_token
 ```
-
-**Q : Le benchmark est lent (>5 minutes)**
-→ Normal. Le modèle est uploadé, compilé, flashé sur une vraie board STM32 chez ST, puis mesuré. La queue peut être longue.
-
-**Q : Mon modèle `.onnx` n'est pas accepté**
-→ Vérifie que ton modèle est compatible avec STEdgeAI Core. Certains opérateurs ne sont pas supportés sur MCU.
-
-**Q : Puis-je utiliser le script sans connexion internet ?**
-→ Non. Le benchmark se passe sur les serveurs ST.
 
 ---
 
 ## Boards STM32 disponibles
 
-Les boards disponibles sont récupérées automatiquement depuis le cloud au lancement.
-Exemples typiques :
+Les boards sont récupérées automatiquement depuis le cloud. Exemples typiques :
 
-| Board | CPU | Usage |
-|-------|-----|-------|
-| STM32H747I-DISCO | Cortex-M7 480MHz | Référence |
-| STM32N6570-DK | Neural-ART NPU | Modèles NPU |
-| STM32MP257F-EV1 | Cortex-A35 | Linux/MPU |
-| NUCLEO-H743ZI2 | Cortex-M7 | Prototypage |
-
----
-
-## Accéder à ce projet depuis son poste (Cloud → Local)
-
-Ce projet tourne sur une **instance cloud** (machine virtuelle accessible via navigateur).
-Pour travailler dessus depuis ton ordinateur :
-
-### Option 1 — Télécharger le ZIP depuis GitHub
-```
-https://github.com/ismg2/STDev-CloudInstance
-→ Code → Download ZIP
-```
-
-### Option 2 — Cloner avec Git
-```bash
-git clone https://github.com/ismg2/STDev-CloudInstance.git
-```
-
-### Option 3 — VS Code + extension GitHub (sans Git installé)
-1. Ouvre [github.dev/ismg2/STDev-CloudInstance](https://github.dev/ismg2/STDev-CloudInstance)
-2. Un VS Code dans le navigateur s'ouvre — tu peux éditer directement
-
-### Best practices quand le push Git échoue
-
-| Problème | Cause probable | Solution |
-|----------|----------------|----------|
-| `403 Permission denied` | Token GitHub expiré / mauvaise config remote | Recheck le remote : `git remote -v` |
-| `rejected non-fast-forward` | La branche distante a avancé | `git pull --rebase` puis `git push` |
-| Push impossible mais commits faits | Tout est sauvé localement | `git bundle create backup.bundle --all` → fichier portable |
-| Perte de connexion pendant le push | Réseau | `git push` est idempotent, relance simplement |
-
-**Règle d'or : si le push échoue, les commits locaux sont intacts. `git log` pour vérifier.**
+| Board | Coeur | Cas d'usage |
+|-------|-------|-------------|
+| STM32H747I-DISCO | Cortex-M7 480 MHz | Référence MCU haute perf |
+| STM32N6570-DK | Neural-ART NPU | Modèles avec accélérateur NPU |
+| STM32MP257F-EV1 | Cortex-A35 Linux | Modèles MPU/Linux |
+| NUCLEO-H743ZI2 | Cortex-M7 | Prototypage standard |
+| STM32F746G-DISCO | Cortex-M7 216 MHz | MCU entrée de gamme |
 
 ---
 
-## Liens utiles
+## Liens
 
 - [ST Edge AI Developer Cloud](https://stedgeai-dc.st.com)
 - [Créer un compte myST](https://my.st.com)
-- [STM32 Model Zoo](https://github.com/STMicroelectronics/stm32ai-modelzoo)
-- [Documentation STEdgeAI](https://wiki.st.com/stm32mcu/wiki/AI:Getting_started_with_ST_Edge_AI_Developer_Cloud)
+- [STM32 AI Model Zoo](https://github.com/STMicroelectronics/stm32ai-modelzoo)
+- [STMicroelectronics Model Zoo Services](https://github.com/STMicroelectronics/stm32ai-modelzoo-services)
+- [ST Edge AI Core 4.0 — Doc locale](Documentation/ST%20Edge%20AI%20Core%204.0/index.html)
