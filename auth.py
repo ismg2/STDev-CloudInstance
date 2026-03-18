@@ -1,227 +1,281 @@
 """Authentication module for STEdgeAI Developer Cloud.
 
-Handles Bearer token management:
-- Reads cached token from ~/.stmai_token
-- Refreshes expired tokens automatically
-- Falls back to interactive login if no token exists
-- Supports environment variables stmai_username / stmai_password
+Implements the exact OAuth2/SSO login flow used by ST's official tools.
+Source reference: STMicroelectronics/stm32ai-modelzoo-services login_service.py
+
+Flow:
+  1. GET  {SSO_URL}/as/authorization.oauth2  → HTML login page
+  2. POST {login_url} with username, password, lt, _eventId=Login → redirects
+  3. Follow redirects until reaching {CALLBACK_URL}?code=...
+  4. POST {USER_SERVICE_URL}/login/callback with redirect_url + code → tokens
+  5. Tokens saved to ~/.stmai_token as JSON
+
+Token refresh:
+  POST {USER_SERVICE_URL}/login/refresh with refresh_token
 """
 
+import getpass
+import html
 import json
 import os
 import re
 import time
-import getpass
+from json import JSONDecodeError
+from pathlib import Path
+from urllib.parse import parse_qs, urljoin, urlparse
 
 import requests
 
-from config import TOKEN_FILE, SSO_URL, SSO_CLIENT_ID, SSO_CALLBACK_URL, ENDPOINTS, BASE_URL
+from config import (
+    SSO_URL, CLIENT_ID, CALLBACK_URL,
+    USER_SERVICE_URL, TOKEN_FILE,
+    SSL_VERIFY,
+)
+
+LOGIN_CALLBACK_ROUTE = f"{USER_SERVICE_URL}/login/callback"
+LOGIN_REFRESH_ROUTE  = f"{USER_SERVICE_URL}/login/refresh"
 
 
 def _get_ssl_verify():
-    """Check if SSL verification should be disabled (proxy environments)."""
-    return os.environ.get("STEDGEAI_SSL_VERIFY", "1") != "0"
+    """Return SSL verify flag (can be disabled via NO_SSL_VERIFY env var)."""
+    return SSL_VERIFY
 
 
-def _get_session():
-    """Create a requests session with appropriate headers."""
-    session = requests.Session()
-    session.verify = _get_ssl_verify()
-    session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"
+def _get_proxy():
+    """Read proxy settings from environment variables."""
+    config = {}
+    for key in ("http_proxy", "HTTP_PROXY", "https_proxy", "HTTPS_PROXY"):
+        val = os.environ.get(key)
+        if val:
+            proto = "http" if "http_proxy" in key.lower() else "https"
+            config[proto] = val
+    return config or None
+
+
+def _make_session():
+    """Create a requests.Session configured for ST SSO."""
+    s = requests.Session()
+    s.verify  = _get_ssl_verify()
+    s.proxies = _get_proxy() or {}
+    s.headers.update({
+        "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv59.0) Gecko/20100101",
     })
-    # Support HTTP_PROXY / HTTPS_PROXY from environment
-    http_proxy = os.environ.get("HTTP_PROXY") or os.environ.get("http_proxy")
-    https_proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
-    if http_proxy or https_proxy:
-        session.proxies = {}
-        if http_proxy:
-            session.proxies["http"] = http_proxy
-        if https_proxy:
-            session.proxies["https"] = https_proxy
-    return session
+    return s
 
 
-def _load_cached_token():
-    """Load token from cache file if it exists."""
-    if not os.path.exists(TOKEN_FILE):
+# ---------------------------------------------------------------------------
+# Token file helpers
+# ---------------------------------------------------------------------------
+
+def _read_token():
+    """Load token dict from ~/.stmai_token. Returns None if missing/invalid."""
+    path = Path(TOKEN_FILE)
+    if not path.exists():
         return None
     try:
-        with open(TOKEN_FILE, "r") as f:
-            data = json.load(f)
-        if "access_token" in data:
-            return data
-    except (json.JSONDecodeError, IOError):
-        pass
-    return None
+        with open(path, "r") as f:
+            return json.load(f)
+    except (JSONDecodeError, OSError):
+        return None
 
 
-def _save_token(token_data):
-    """Save token data to cache file."""
-    with open(TOKEN_FILE, "w") as f:
-        json.dump(token_data, f)
-    os.chmod(TOKEN_FILE, 0o600)
+def _save_token(token: dict):
+    """Persist token dict to ~/.stmai_token (mode 600)."""
+    path = Path(TOKEN_FILE)
+    with open(path, "w") as f:
+        json.dump(token, f)
+    os.chmod(path, 0o600)
 
 
-def _is_token_expired(token_data):
-    """Check if the token has expired."""
-    expires_at = token_data.get("expires_at", 0)
-    return time.time() >= expires_at
+def _is_expired(token: dict) -> bool:
+    """Return True if token has expired."""
+    expires_at = token.get("expires_at")
+    if expires_at is None:
+        return True
+    return time.time() >= float(expires_at)
 
 
-def _refresh_token(token_data):
-    """Refresh an expired access token using the refresh token."""
-    refresh_tok = token_data.get("refresh_token")
+# ---------------------------------------------------------------------------
+# Refresh
+# ---------------------------------------------------------------------------
+
+def _refresh(token: dict):
+    """Try to refresh an expired token. Returns new token dict or None."""
+    refresh_tok = token.get("refresh_token")
     if not refresh_tok:
         return None
-    session = _get_session()
+    s = _make_session()
     try:
-        resp = session.post(
-            ENDPOINTS["login_refresh"],
-            json={"refresh_token": refresh_tok},
+        resp = s.post(
+            LOGIN_REFRESH_ROUTE,
+            data={"refresh_token": refresh_tok},
             timeout=30,
         )
         if resp.status_code == 200:
-            new_data = resp.json()
-            new_data.setdefault("expires_at", time.time() + 3600)
-            _save_token(new_data)
-            return new_data
+            new_token = {**token, **resp.json()}
+            _save_token(new_token)
+            return new_token
     except requests.RequestException:
         pass
     return None
 
 
-def _login_interactive(username=None, password=None):
-    """Perform OAuth2 SSO login to obtain a new token.
+# ---------------------------------------------------------------------------
+# Interactive login (exact ST flow)
+# ---------------------------------------------------------------------------
 
-    Uses the same flow as the official ST tools:
-    1. Initiate OAuth2 authorization request
-    2. Submit credentials to CAS login
-    3. Follow redirects to obtain authorization code
-    4. Exchange code for tokens
+def _login(username: str, password: str) -> dict:
+    """Perform full OAuth2 SSO login and return the token dict.
+
+    Mirrors the exact flow in ST's login_service._login().
     """
-    if not username:
-        username = os.environ.get("stmai_username") or input("ST Username (email): ").strip()
-    if not password:
-        password = os.environ.get("stmai_password") or getpass.getpass("ST Password: ")
+    s = _make_session()
 
-    session = _get_session()
-    session.max_redirects = 30
+    # Step 1 – Initiate OAuth2 authorization request
+    resp = s.get(
+        url=f"{SSO_URL}/as/authorization.oauth2",
+        params={
+            "response_type": "code",
+            "client_id": CLIENT_ID,
+            "scope": "openid",
+            "redirect_uri": CALLBACK_URL,
+            "response_mode": "query",
+        },
+        allow_redirects=True,
+        timeout=30,
+    )
+    page = resp.text
 
-    # Step 1: Initiate OAuth2 authorization
-    auth_params = {
-        "response_type": "code",
-        "client_id": SSO_CLIENT_ID,
-        "redirect_uri": SSO_CALLBACK_URL,
-        "scope": "openid",
-    }
-    try:
-        resp = session.get(f"{SSO_URL}/as/authorization.oauth2", params=auth_params,
-                           allow_redirects=True, timeout=30)
-    except requests.RequestException as e:
-        raise ConnectionError(f"Impossible de contacter le serveur SSO: {e}")
+    # Step 2 – Parse the CAS login form
+    form_match = re.search(r'<form\s+.*?\s+action="(.*?)"', page, re.DOTALL)
+    if not form_match:
+        raise RuntimeError("Impossible de trouver le formulaire de login ST SSO.")
+    form_action = html.unescape(form_match.group(1))
 
-    # Step 2: Extract login form and submit credentials
-    # Look for the CAS login form action URL and login ticket
-    action_match = re.search(r'action="([^"]+)"', resp.text)
-    lt_match = re.search(r'name="lt" value="([^"]+)"', resp.text)
+    lt_match = re.search(r'(<input.*?name="lt".*?/>)', page)
+    if not lt_match:
+        raise RuntimeError("Impossible de trouver le token 'lt' dans la page SSO.")
+    lt_value = html.unescape(
+        re.search(r'value="(.*?)"', lt_match.group(1)).group(1)
+    )
 
-    if not action_match:
-        raise RuntimeError("Impossible de trouver le formulaire de login SSO.")
+    # Reconstruct absolute login URL
+    parsed = urlparse(resp.url)
+    login_url = urljoin(parsed.scheme + "://" + parsed.netloc, form_action)
 
-    login_url = action_match.group(1)
-    if not login_url.startswith("http"):
-        login_url = f"{SSO_URL}{login_url}"
+    # Step 3 – Submit credentials
+    resp = s.post(
+        url=login_url,
+        data={
+            "username": username,
+            "password": password,
+            "_eventId": "Login",
+            "lt": lt_value,
+        },
+        allow_redirects=False,
+        timeout=30,
+    )
 
-    form_data = {
-        "username": username,
-        "password": password,
-        "submit": "Sign In",
-    }
-    if lt_match:
-        form_data["lt"] = lt_match.group(1)
+    # Check for wrong password / blocked account
+    if resp.status_code == 200:
+        if re.search(r"You have provided the wrong password", resp.text):
+            raise PermissionError("Identifiants invalides (mauvais mot de passe).")
+        if re.search(r"You have exceeded 5 login attempts", resp.text):
+            raise PermissionError("Compte bloque apres 5 tentatives echouees.")
 
-    try:
-        resp = session.post(login_url, data=form_data, allow_redirects=True, timeout=30)
-    except requests.RequestException as e:
-        raise ConnectionError(f"Erreur lors de la soumission des credentials: {e}")
+    # Step 4 – Follow redirects until we reach our callback URL
+    redirect = resp.headers.get("Location", "")
+    is_ready = False
+    while not is_ready:
+        resp = s.get(url=redirect, allow_redirects=False, timeout=30)
+        if resp.status_code == 302:
+            redirect = resp.headers.get("Location", "")
+            is_ready = redirect.startswith(CALLBACK_URL)
+        else:
+            is_ready = True
 
-    # Check for wrong password
-    if "Invalid credentials" in resp.text or "mot de passe" in resp.text.lower():
-        raise PermissionError("Identifiants invalides. Verifiez votre username/password.")
+    # Step 5 – Extract authorization code from callback URL
+    query  = urlparse(redirect).query
+    params = parse_qs(query)
+    if "code" not in params:
+        raise RuntimeError("Code d'autorisation absent de la URL de callback.")
+    auth_code = params["code"][0]
 
-    # Step 3: Extract authorization code from redirect
-    code = None
-    if "code=" in resp.url:
-        code_match = re.search(r'code=([^&]+)', resp.url)
-        if code_match:
-            code = code_match.group(1)
+    # Step 6 – Exchange code for tokens
+    resp = s.post(
+        url=LOGIN_CALLBACK_ROUTE,
+        data={
+            "redirect_url": CALLBACK_URL,
+            "code": auth_code,
+        },
+        allow_redirects=False,
+        timeout=30,
+    )
+    assert resp.status_code == 200, f"Callback echoue HTTP {resp.status_code}"
 
-    if not code:
-        # Check history for the code in redirects
-        for r in resp.history:
-            if "code=" in r.headers.get("Location", ""):
-                code_match = re.search(r'code=([^&]+)', r.headers["Location"])
-                if code_match:
-                    code = code_match.group(1)
-                    break
+    token = resp.json()
+    if not token.get("access_token"):
+        raise RuntimeError("Le serveur n'a pas retourne de access_token.")
 
-    if not code:
-        raise RuntimeError("Impossible d'obtenir le code d'autorisation. Login echoue.")
-
-    # Step 4: Exchange code for token
-    try:
-        resp = session.post(
-            ENDPOINTS["login_callback"],
-            json={"code": code},
-            timeout=30,
-        )
-        if resp.status_code != 200:
-            raise RuntimeError(f"Echange de code echoue (HTTP {resp.status_code})")
-        token_data = resp.json()
-        token_data.setdefault("expires_at", time.time() + 3600)
-        _save_token(token_data)
-        return token_data
-    except requests.RequestException as e:
-        raise ConnectionError(f"Erreur lors de l'echange de token: {e}")
+    _save_token(token)
+    return token
 
 
-def get_bearer_token():
-    """Get a valid Bearer token, refreshing or logging in as needed.
+def _login_with_retry(username: str, password: str, retries: int = 5) -> dict:
+    """Retry login up to `retries` times with 5s delay between attempts."""
+    for attempt in range(retries):
+        try:
+            return _login(username, password)
+        except PermissionError:
+            raise  # Don't retry bad credentials
+        except Exception as e:
+            if attempt < retries - 1:
+                print(f"  [Auth] Tentative {attempt + 1}/{retries} echouee, retry dans 5s... ({e})")
+                time.sleep(5)
+            else:
+                raise
 
-    Returns:
-        str: A valid access token ready for Authorization header.
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+def get_bearer_token() -> str:
+    """Return a valid Bearer access token, refreshing or logging in as needed.
+
+    Priority:
+      1. Cached non-expired token  → return as-is
+      2. Cached expired token      → try refresh
+      3. No token / refresh failed → interactive login
     """
-    # Try cached token first
-    token_data = _load_cached_token()
-    if token_data:
-        if not _is_token_expired(token_data):
-            print("[Auth] Token Bearer valide trouve en cache.")
-            return token_data["access_token"]
-        # Try refresh
+    token = _read_token()
+
+    if token:
+        if not _is_expired(token):
+            print("[Auth] Token Bearer valide (cache).")
+            return token["access_token"]
         print("[Auth] Token expire, tentative de refresh...")
-        refreshed = _refresh_token(token_data)
+        refreshed = _refresh(token)
         if refreshed:
             print("[Auth] Token rafraichi avec succes.")
             return refreshed["access_token"]
-        print("[Auth] Refresh echoue, login interactif necessaire.")
+        print("[Auth] Refresh echoue, login interactif requis.")
 
     # Interactive login
-    print("[Auth] Aucun token valide. Connexion au ST Edge AI Developer Cloud...")
-    print("       Vous avez besoin d'un compte myST (https://my.st.com)")
-    token_data = _login_interactive()
+    print("\n[Auth] Connexion au ST Edge AI Developer Cloud (compte myST requis)")
+    print("       https://my.st.com  |  Vos credentials ne sont jamais stockes en clair.")
+    print()
+    username = os.environ.get("stmai_username") or input("  Email (username myST) : ").strip()
+    password = os.environ.get("stmai_password") or getpass.getpass("  Mot de passe        : ")
+
+    token = _login_with_retry(username, password)
     print("[Auth] Connexion reussie!")
-    return token_data["access_token"]
+    return token["access_token"]
 
 
-def get_auth_headers():
-    """Get HTTP headers with Bearer authentication.
-
-    Returns:
-        dict: Headers dict with Authorization Bearer token.
-    """
-    token = get_bearer_token()
+def get_auth_headers() -> dict:
+    """Return HTTP headers dict with Authorization Bearer token."""
     return {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
+        "Authorization": f"Bearer {get_bearer_token()}",
+        "Accept": "application/json",
     }

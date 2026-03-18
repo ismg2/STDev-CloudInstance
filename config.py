@@ -1,56 +1,66 @@
-"""Configuration for STEdgeAI Developer Cloud CLI."""
+"""Configuration for STEdgeAI Developer Cloud CLI.
+
+Endpoints sourced from ST official backend:
+https://github.com/STMicroelectronics/stm32ai-modelzoo-services
+"""
 
 import os
 
-# --- STEdgeAI Developer Cloud Endpoints ---
-BASE_URL = os.environ.get("BASE_URL_DEVCLOUD", "https://stedgeai-dc.st.com")
+# --- STEdgeAI Developer Cloud Base URL ---
+BASE_URL = os.environ.get("BASE_URL_DEVCLOUD", "https://stedgeai-dc.st.com/")
 
-ENDPOINTS = {
-    "user_service": f"{BASE_URL}/api/user_service",
-    "file_service": f"{BASE_URL}/api/file",
-    "benchmark": f"{BASE_URL}/api/benchmark",
-    "stm32ai": f"{BASE_URL}/api/stm32ai",
-    "generate_nbg": f"{BASE_URL}/api/generate_nbg",
-    "versions": f"{BASE_URL}/assets/versions.json",
-    "login_callback": f"{BASE_URL}/login/callback",
-    "login_refresh": f"{BASE_URL}/login/refresh",
-}
+# Ensure trailing slash
+if not BASE_URL.endswith("/"):
+    BASE_URL += "/"
 
-# --- SSO Configuration ---
-SSO_URL = os.environ.get("SSO_URL", "https://sso.st.com")
-SSO_CLIENT_ID = "oidc_prod_client_app_stm32ai"
-SSO_CALLBACK_URL = f"{BASE_URL}/callback"
+# --- Service Endpoints (exact paths from ST source) ---
+USER_SERVICE_URL    = f"{BASE_URL}api/user_service"
+FILE_SERVICE_URL    = f"{BASE_URL}api/file"
+BENCHMARK_URL       = f"{BASE_URL}api/benchmark"
+VERSIONS_URL        = f"{BASE_URL}assets/versions.json"
+CALLBACK_URL        = f"{BASE_URL}callback"
+
+# STM32AI service URL is version-dependent: {BASE_URL}api/{version}/stm32ai/
+# Built dynamically in cloud_api.py
+
+# --- SSO / OAuth2 ---
+SSO_URL    = os.environ.get("SSO_URL", "https://sso.st.com")
+CLIENT_ID  = os.environ.get("CLIENTID", "oidc_prod_client_app_stm32ai")
+
+# --- Routes derived from services ---
+# File service sub-routes
+MODELS_ROUTE              = f"{FILE_SERVICE_URL}/files/models"
+VALIDATION_INPUTS_ROUTE   = f"{FILE_SERVICE_URL}/files/validation/inputs"
+VALIDATION_OUTPUTS_ROUTE  = f"{FILE_SERVICE_URL}/files/validation/outputs"
+GENERATED_FILES_ROUTE     = f"{FILE_SERVICE_URL}/files/generated"
+
+# Benchmark sub-routes
+BENCHMARK_BOARDS_ROUTE = f"{BENCHMARK_URL}/boards"
+
+# User service sub-routes
+LOGIN_CALLBACK_ROUTE = f"{USER_SERVICE_URL}/login/callback"
+LOGIN_REFRESH_ROUTE  = f"{USER_SERVICE_URL}/login/refresh"
+USER_AUTHENTICATE    = f"{USER_SERVICE_URL}/login/authenticate"
 
 # --- Token Storage ---
 TOKEN_FILE = os.path.expanduser("~/.stmai_token")
 
 # --- Project Paths ---
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODELS_DIR = os.path.join(PROJECT_DIR, "modeles")
+MODELS_DIR  = os.path.join(PROJECT_DIR, "modeles")
 RESULTS_DIR = os.path.join(PROJECT_DIR, "resultats")
 RESULTS_CSV = os.path.join(RESULTS_DIR, "resultats.csv")
 
 # --- Supported Model Extensions ---
-MODEL_EXTENSIONS = {".tflite", ".h5", ".onnx", ".keras", ".pb", ".savedmodel"}
+MODEL_EXTENSIONS = {".tflite", ".h5", ".onnx", ".keras", ".pb"}
 
-# --- Available STM32 Boards for Benchmarking ---
-AVAILABLE_BOARDS = [
-    "STM32H747I-DISCO",
-    "STM32H7S78-DK",
-    "STM32F469I-DISCO",
-    "STM32F746G-DISCO",
-    "STM32H573I-DK",
-    "STM32L4R9I-DISCO",
-    "STM32MP257F-EV1",
-    "STM32N6570-DK",
-    "B-U585I-IOT02A",
-    "NUCLEO-F401RE",
-    "NUCLEO-H743ZI2",
-    "NUCLEO-U575ZI-Q",
-]
+# --- Default STEdgeAI version (fetched from API at runtime if possible) ---
+# The actual latest version is resolved dynamically via get_latest_version()
+STEDGEAI_DEFAULT_VERSION = os.environ.get("STEDGEAI_VERSION", "10.0.0")
 
-# --- STEdgeAI Version ---
-STEDGEAI_VERSION = os.environ.get("STEDGEAI_VERSION", "10.0.0")
+# --- SSL ---
+# Set NO_SSL_VERIFY=1 to disable SSL verification (corporate proxy environments)
+SSL_VERIFY = os.environ.get("NO_SSL_VERIFY", "") == ""
 
 # --- CSV Columns ---
 CSV_COLUMNS = [

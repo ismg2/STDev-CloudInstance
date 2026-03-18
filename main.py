@@ -21,7 +21,20 @@ import os
 # Ensure project root is in path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import MODELS_DIR, RESULTS_DIR, AVAILABLE_BOARDS
+from config import MODELS_DIR, RESULTS_DIR
+
+# Fallback board list if cloud API is unreachable
+AVAILABLE_BOARDS = [
+    "STM32H747I-DISCO",
+    "STM32H7S78-DK",
+    "STM32F469I-DISCO",
+    "STM32F746G-DISCO",
+    "STM32H573I-DK",
+    "STM32N6570-DK",
+    "STM32MP257F-EV1",
+    "B-U585I-IOT02A",
+    "NUCLEO-H743ZI2",
+]
 from model_discovery import interactive_model_selection, scan_models
 from results_manager import (
     append_result, display_results, load_results, filter_results, ensure_csv_exists,
@@ -43,13 +56,13 @@ def select_board():
     print("  SELECTION DU BOARD CIBLE")
     print(f"{'='*50}")
 
-    # Try to fetch from cloud, fall back to config
+    # Try to fetch live from cloud, fall back to hardcoded list
     boards = AVAILABLE_BOARDS
     try:
         from cloud_api import CloudClient
         client = CloudClient()
-        cloud_boards = client.get_available_boards()
-        if isinstance(cloud_boards, list) and cloud_boards:
+        cloud_boards = client.get_boards()
+        if cloud_boards:
             boards = cloud_boards
     except Exception:
         pass
@@ -95,12 +108,7 @@ def run_benchmark():
         print("  Benchmark annule.")
         return
 
-    # Import cloud client
-    try:
-        from cloud_api import CloudClient, CloudAPIError
-    except ImportError as e:
-        print(f"  Erreur d'import: {e}")
-        return
+    from cloud_api import CloudClient, CloudAPIError
 
     try:
         client = CloudClient()
@@ -118,20 +126,13 @@ def run_benchmark():
         print(f"  {'─'*40}")
 
         try:
-            # Upload
-            file_id = client.upload_model(model["path"])
+            # Benchmark includes upload + analyze + on-board execution
+            metrics = client.run_benchmark(model["path"], board)
 
-            # Analyze (for memory info)
-            analysis = client.analyze_model(file_id)
-
-            # Benchmark (for inference time)
-            benchmark = client.benchmark_model(file_id, board)
-
-            # Merge results
-            inference_time = benchmark.get("inference_time_ms", "N/A")
-            ram = benchmark.get("ram_ko") or analysis.get("ram_ko", "N/A")
-            rom = benchmark.get("rom_ko") or analysis.get("rom_ko", "N/A")
-            macc = analysis.get("macc", "N/A")
+            inference_time = metrics.get("inference_time_ms", "N/A")
+            ram  = metrics.get("ram_ko", "N/A")
+            rom  = metrics.get("rom_ko", "N/A")
+            macc = metrics.get("macc", "N/A")
 
             append_result(
                 model_name=model["name"],
@@ -254,7 +255,11 @@ def main_menu():
             try:
                 from auth import get_bearer_token
                 token = get_bearer_token()
-                print(f"  Token valide: {token[:20]}...")
+                print(f"\n  Token valide: {token[:20]}...")
+                print(f"  Cache: ~/.stmai_token")
+                from cloud_api import get_latest_version
+                ver = get_latest_version(token)
+                print(f"  Version STEdgeAI detectee: {ver}")
             except Exception as e:
                 print(f"  Erreur: {e}")
         else:
