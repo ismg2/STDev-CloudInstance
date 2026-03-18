@@ -78,21 +78,68 @@ python main.py
 ══════════════════════════════════════════════════
   [1] Voir les modèles disponibles
   [2] Lancer un benchmark
-  [3] Voir les résultats
-  [4] Visualiser les performances (graphiques)
-  [5] Vérifier l'authentification
+  [3] Lancer un batch benchmark (multi-selection)
+  [4] Voir les résultats
+  [5] Visualiser les performances (graphiques)
+  [6] Vérifier l'authentification
   [Q] Quitter
 ```
 
 ### Commandes directes
 
 ```bash
-python main.py --benchmark                          # Benchmark guidé
+python main.py --benchmark                          # Benchmark guidé simple
+python main.py --batch                              # Batch benchmark (multi-selection)
 python main.py --results                            # Tableau des résultats
 python main.py --results --board STM32H747I-DISCO   # Filtrer par board
 python main.py --visualize                          # Graphiques
 python main.py --models                             # Lister les modèles
 ```
+
+### 🚀 Mode Batch (Nouveau!)
+
+Le **batch benchmark** permet de tester **plusieurs modèles** sur **plusieurs boards** avec **plusieurs configurations** en une seule fois.
+
+**Exemple d'utilisation :**
+
+```bash
+python main.py --batch
+```
+
+**Workflow guidé :**
+
+1. **Sélection des modèles** (multi-selection avec checkboxes)
+   - Navigue dans tes dossiers `modeles/`
+   - Sélectionne un par un ou tous d'un coup
+   - `[A]` = sélectionner tous · `[T]` = récursif · `[OK]` = valider
+
+2. **Sélection des boards** (multi-selection)
+   - Choisis une ou plusieurs boards STM32
+   - `[A]` = sélectionner toutes · `[OK]` = valider
+
+3. **Sélection des optimisations** (multi-selection)
+   - `balanced`, `ram`, `time`, `size`
+   - Par défaut : `balanced` pré-sélectionné
+
+4. **Sélection des compressions** (multi-selection)
+   - `none`, `lossless`, `low`, `medium`, `high`
+   - Par défaut : `lossless` pré-sélectionné
+
+5. **Confirmation et lancement**
+   - Résumé du batch : `3 modèles × 2 boards × 2 opts × 1 comp = 12 benchmarks`
+   - Barre de progression en temps réel (tqdm)
+   - Rapport final avec statistiques (succès/erreurs, durée moyenne)
+
+**Exemple concret :**
+```
+3 modèles (mobilenet_v1.tflite, resnet50.tflite, efficientnet.tflite)
+× 2 boards (STM32H747I-DISCO, STM32N6570-DK)
+× 2 optimisations (balanced, time)
+× 1 compression (lossless)
+= 12 benchmarks automatiques
+```
+
+Tous les résultats sont sauvegardés dans `resultats/resultats.csv` au fur et à mesure.
 
 ---
 

@@ -11,7 +11,8 @@ ST Edge AI Core 4.0 supported:
 
 Usage:
   python main.py                  → Menu interactif guidé
-  python main.py --benchmark      → Lancer un benchmark
+  python main.py --benchmark      → Lancer un benchmark simple
+  python main.py --batch          → Batch benchmark (multi-selection)
   python main.py --results        → Afficher les résultats
   python main.py --visualize      → Dashboard graphique
   python main.py --models         → Lister les modèles
@@ -282,9 +283,10 @@ def main_menu():
         print(f"{'='*50}")
         print("  [1] Voir les modeles disponibles")
         print("  [2] Lancer un benchmark")
-        print("  [3] Voir les resultats")
-        print("  [4] Visualiser les performances (graphiques)")
-        print("  [5] Verifier l'authentification")
+        print("  [3] Lancer un batch benchmark (multi-selection)")
+        print("  [4] Voir les resultats")
+        print("  [5] Visualiser les performances (graphiques)")
+        print("  [6] Verifier l'authentification")
         print("  [Q] Quitter")
 
         choice = input("\n  Choix > ").strip().upper()
@@ -296,10 +298,13 @@ def main_menu():
         elif choice == "2":
             run_benchmark()
         elif choice == "3":
-            show_results_menu()
+            from batch_benchmark import run_batch_benchmark
+            run_batch_benchmark()
         elif choice == "4":
-            interactive_dashboard()
+            show_results_menu()
         elif choice == "5":
+            interactive_dashboard()
+        elif choice == "6":
             try:
                 from auth import get_bearer_token
                 from cloud_api import get_latest_version
@@ -326,16 +331,18 @@ def parse_args():
 Exemples:
   python main.py                        Menu interactif
   python main.py --benchmark            Benchmark direct
+  python main.py --batch                Batch benchmark (multi-selection guidee)
   python main.py --results              Voir resultats
   python main.py --results --board STM32H747I-DISCO
   python main.py --visualize            Graphiques
   python main.py --models               Lister modeles
         """,
     )
-    parser.add_argument("--benchmark",  action="store_true")
-    parser.add_argument("--results",    action="store_true")
-    parser.add_argument("--visualize",  action="store_true")
-    parser.add_argument("--models",     action="store_true")
+    parser.add_argument("--benchmark",  action="store_true", help="Benchmark interactif simple")
+    parser.add_argument("--batch",      action="store_true", help="Batch benchmark multi-selection")
+    parser.add_argument("--results",    action="store_true", help="Afficher resultats")
+    parser.add_argument("--visualize",  action="store_true", help="Dashboard graphique")
+    parser.add_argument("--models",     action="store_true", help="Lister modeles disponibles")
     parser.add_argument("--board",      type=str, help="Filtrer par board")
     return parser.parse_args()
 
@@ -349,6 +356,10 @@ if __name__ == "__main__":
     if args.benchmark:
         print(BANNER)
         run_benchmark()
+    elif args.batch:
+        print(BANNER)
+        from batch_benchmark import run_batch_benchmark
+        run_batch_benchmark()
     elif args.results:
         display_results(filter_results(board=args.board) if args.board else None)
     elif args.visualize:
