@@ -3,6 +3,59 @@
 from config import OPTIMIZATION_OPTIONS, COMPRESSION_OPTIONS
 
 
+def _is_npu_board_name(board_name: str) -> bool:
+    upper = (board_name or "").upper()
+    return any(kw in upper for kw in ("N6", "N6570", "NEURAL-ART", "NEURAL_ART", "NPU"))
+
+
+def select_compute_mode_for_boards(boards: list) -> dict:
+    """Select compute mode per board.
+
+    For NPU boards, allows auto/cpu/npu/both.
+    For non-NPU boards, allows auto/cpu.
+    """
+    modes = {}
+    print(f"\n{'='*60}")
+    print("  MODE DE CALCUL PAR BOARD")
+    print(f"{'='*60}")
+    print("  Reco: auto pour 1er passage; sur board NPU tu peux choisir BOTH pour comparer CPU vs NPU.")
+
+    for board in boards:
+        is_npu = _is_npu_board_name(board)
+        print(f"\n  Board: {board}")
+        if is_npu:
+            options = {
+                "auto": "Auto (NPU privilegie)",
+                "cpu": "Force CPU",
+                "npu": "Force NPU",
+                "both": "Lancer CPU + NPU",
+            }
+        else:
+            options = {
+                "auto": "Auto (equivalent CPU)",
+                "cpu": "Force CPU",
+            }
+
+        keys = list(options.keys())
+        for i, key in enumerate(keys, 1):
+            marker = " (defaut)" if key == "auto" else ""
+            print(f"    [{i}] {key:<5} - {options[key]}{marker}")
+
+        choice = input("  Choix [Entree=auto] > ").strip()
+        if not choice:
+            modes[board] = "auto"
+            continue
+        if choice.isdigit() and 1 <= int(choice) <= len(keys):
+            modes[board] = keys[int(choice) - 1]
+        elif choice.lower() in options:
+            modes[board] = choice.lower()
+        else:
+            print("  Choix invalide, auto applique.")
+            modes[board] = "auto"
+
+    return modes
+
+
 def select_multiple_boards(boards: list) -> list:
     """Interactive multi-selection of boards with checkboxes.
 
@@ -123,7 +176,7 @@ def select_multiple_options(title: str, options: dict, default_key: str) -> list
             print("  Choix invalide.")
 
 
-def interactive_batch_benchmark():
+def interactive_batch_benchmark(core_version: str = ""):
     """Guided workflow for batch benchmark.
 
     Returns:
@@ -153,7 +206,7 @@ def interactive_batch_benchmark():
     from cloud_api import CloudClient
     from main import AVAILABLE_BOARDS
     try:
-        client = CloudClient()
+        client = CloudClient(version=core_version or None)
         boards_list = client.get_boards() or AVAILABLE_BOARDS
     except Exception as e:
         print(f"  Erreur d'authentification: {e}")
@@ -166,7 +219,19 @@ def interactive_batch_benchmark():
 
     print(f"\n  {len(boards)} board(s) selectionne(s): {', '.join(boards)}")
 
-    # Step 3: Select optimizations (multi)
+    # Step 3: Select core versions (multi)
+    versions = CloudClient.available_versions()
+    versions_map = {v: "Version STEdgeAI Core" for v in versions}
+    default_version = core_version or client.version
+    print("\n  Etape 3/5 : Selection des versions Core")
+    selected_versions = select_multiple_options(
+        "VERSIONS CORE", versions_map, default_version
+    )
+    if not selected_versions:
+        print("  Batch annule.")
+        return None
+
+    # Step 4: Select optimizations (multi)
     print("\n  Etape 3/4 : Selection des optimisations")
     optimizations = select_multiple_options(
         "OPTIMISATIONS (-O)", OPTIMIZATION_OPTIONS, "balanced"
@@ -177,8 +242,8 @@ def interactive_batch_benchmark():
 
     print(f"\n  {len(optimizations)} optimisation(s) selectionnee(s): {', '.join(optimizations)}")
 
-    # Step 4: Select compressions (multi)
-    print("\n  Etape 4/4 : Selection des compressions")
+    # Step 5: Select compressions (multi)
+    print("\n  Etape 5/5 : Selection des compressions")
     compressions = select_multiple_options(
         "COMPRESSIONS (-c)", COMPRESSION_OPTIONS, "lossless"
     )
@@ -188,13 +253,39 @@ def interactive_batch_benchmark():
 
     print(f"\n  {len(compressions)} compression(s) selectionnee(s): {', '.join(compressions)}")
 
+    memory_analysis = None
+    if models:
+        try:
+            representative = models[0]
+            ref_version = selected_versions[0]
+            print(
+                "\n  Analyse memoire de reference "
+                f"({representative['name']} | Core {ref_version} | {optimizations[0]}/{compressions[0]})..."
+            )
+            analysis_client = client if ref_version == client.version else CloudClient(version=ref_version)
+            memory_analysis = analysis_client.run_analyze(
+                representative["path"],
+                optimization=optimizations[0],
+                compression=compressions[0],
+            )
+        except Exception as e:
+            print(f"  Analyse memoire ignoree ({e}).")
+
+    from main import collect_simple_core_preferences
+    simple_preferences = collect_simple_core_preferences(memory_analysis=memory_analysis)
+    board_modes = select_compute_mode_for_boards(boards)
+
     # Confirmation summary
-    total_runs = len(models) * len(boards) * len(optimizations) * len(compressions)
+    mode_multiplier = 0
+    for board in boards:
+        mode_multiplier += 2 if board_modes.get(board) == "both" else 1
+    total_runs = len(models) * len(selected_versions) * len(optimizations) * len(compressions) * mode_multiplier
     print(f"\n{'='*60}")
     print("  RESUME DU BATCH")
     print(f"{'='*60}")
     print(f"  Modeles        : {len(models)}")
     print(f"  Boards         : {len(boards)}")
+    print(f"  Versions Core  : {len(selected_versions)}")
     print(f"  Optimisations  : {len(optimizations)}")
     print(f"  Compressions   : {len(compressions)}")
     print(f"  {'─'*58}")
@@ -209,49 +300,70 @@ def interactive_batch_benchmark():
     return {
         "models": models,
         "boards": boards,
+        "versions": selected_versions,
         "optimizations": optimizations,
         "compressions": compressions,
+        "simple_preferences": simple_preferences,
+        "board_modes": board_modes,
     }
 
 
-def run_batch_benchmark():
+def run_batch_benchmark(core_version: str = ""):
     """Execute batch benchmark with progress tracking."""
     from tqdm import tqdm
-    from results_manager import append_result, ensure_csv_exists
+    from results_manager import append_result, ensure_storage_ready
     from cloud_api import CloudClient
+    from config import RESULTS_DB
     import datetime
 
     # Interactive configuration
-    config = interactive_batch_benchmark()
+    config = interactive_batch_benchmark(core_version=core_version)
     if not config:
         return
 
     models = config["models"]
     boards = config["boards"]
+    versions = config["versions"]
     optimizations = config["optimizations"]
     compressions = config["compressions"]
+    simple_preferences = config.get("simple_preferences", {"compute_mode": "auto", "split_weights": False, "allocate_activations": False})
+    board_modes = config.get("board_modes", {board: "auto" for board in boards})
 
-    # Initialize client
+    # Initialize clients per requested version
+    client_cache = {}
     try:
-        client = CloudClient()
+        for version in versions:
+            client_cache[version] = CloudClient(version=version)
     except Exception as e:
         print(f"\n  Erreur: impossible de se connecter au cloud: {e}")
         return
 
-    ensure_csv_exists()
+    ensure_storage_ready()
 
     # Build queue
     queue = []
+    from main import build_core_options_for_board
+
     for model in models:
         for board in boards:
-            for opt in optimizations:
-                for comp in compressions:
-                    queue.append({
-                        "model": model,
-                        "board": board,
-                        "optimization": opt,
-                        "compression": comp,
-                    })
+            mode = board_modes.get(board, "auto")
+            mode_variants = ["cpu", "npu"] if mode == "both" else [mode]
+            for version in versions:
+                for mode_variant in mode_variants:
+                    prefs = dict(simple_preferences)
+                    prefs["compute_mode"] = mode_variant
+                    core_bundle = build_core_options_for_board(board, prefs)
+                    for opt in optimizations:
+                        for comp in compressions:
+                            queue.append({
+                                "model": model,
+                                "board": board,
+                                "version": version,
+                                "compute_mode": mode_variant,
+                                "core_bundle": core_bundle,
+                                "optimization": opt,
+                                "compression": comp,
+                            })
 
     total = len(queue)
     success_count = 0
@@ -264,52 +376,95 @@ def run_batch_benchmark():
     start_time = datetime.datetime.now()
 
     # Progress bar
-    for i, task in enumerate(tqdm(queue, desc="  Benchmarks", unit="run"), 1):
-        model = task["model"]
-        board = task["board"]
-        opt = task["optimization"]
-        comp = task["compression"]
+    try:
+        for i, task in enumerate(tqdm(queue, desc="  Benchmarks", unit="run"), 1):
+            model = task["model"]
+            board = task["board"]
+            version = task["version"]
+            compute_mode = task.get("compute_mode", "auto")
+            core_bundle = task.get("core_bundle", {"cloud_args": {}, "mode_info": {}, "notes": []})
+            core_options = core_bundle.get("cloud_args", {})
+            opt = task["optimization"]
+            comp = task["compression"]
+            client = client_cache[version]
 
-        task_name = f"{model['name']} | {board} | {opt}/{comp}"
+            task_name = f"{model['name']} | {board} | {compute_mode} | v{version} | {opt}/{comp}"
 
-        try:
-            metrics = client.run_benchmark(
-                model["path"], board,
-                optimization=opt,
-                compression=comp,
-            )
-            append_result(
-                model_name       = model["name"],
-                model_dir        = model["relative_dir"],
-                type_framework   = model["extension"].lstrip("."),
-                board            = board,
-                optimization     = opt,
-                compression      = comp,
-                inference_time_ms= metrics.get("inference_time_ms", "N/A"),
-                ram_ko           = metrics.get("ram_ko", "N/A"),
-                rom_ko           = metrics.get("rom_ko", "N/A"),
-                macc             = metrics.get("macc", "N/A"),
-                params           = metrics.get("params", "N/A"),
-                accuracy         = metrics.get("accuracy", "N/A"),
-                rmse             = metrics.get("rmse", "N/A"),
-                mae              = metrics.get("mae", "N/A"),
-                l2r              = metrics.get("l2r", "N/A"),
-                status           = "OK",
-            )
-            success_count += 1
+            try:
+                metrics = client.run_benchmark(
+                    model["path"], board,
+                    optimization=opt,
+                    compression=comp,
+                    **core_options,
+                )
+                run_meta = metrics.get("_run_meta", {})
+                append_result(
+                    model_name       = model["name"],
+                    model_dir        = model["relative_dir"],
+                    type_framework   = model["extension"].lstrip("."),
+                    board            = board,
+                    optimization     = opt,
+                    compression      = comp,
+                    inference_time_ms= metrics.get("inference_time_ms", "N/A"),
+                    ram_ko           = metrics.get("ram_ko", "N/A"),
+                    rom_ko           = metrics.get("rom_ko", "N/A"),
+                    macc             = metrics.get("macc", "N/A"),
+                    params           = metrics.get("params", "N/A"),
+                    accuracy         = metrics.get("accuracy", "N/A"),
+                    rmse             = metrics.get("rmse", "N/A"),
+                    mae              = metrics.get("mae", "N/A"),
+                    l2r              = metrics.get("l2r", "N/A"),
+                    core_version     = run_meta.get("core_version", version),
+                    target           = run_meta.get("target", core_options.get("target", "")),
+                    st_neural_art    = run_meta.get("st_neural_art", core_options.get("st_neural_art", "")),
+                    memory_pool      = run_meta.get("memory_pool", core_options.get("memory_pool", "")),
+                    split_weights    = str(run_meta.get("split_weights", core_options.get("split_weights", False))),
+                    allocate_activations = str(run_meta.get("allocate_activations", core_options.get("allocate_activations", False))),
+                    allocate_states  = str(run_meta.get("allocate_states", core_options.get("allocate_states", False))),
+                    input_memory_alignment = run_meta.get("input_memory_alignment", core_options.get("input_memory_alignment", "")),
+                    output_memory_alignment = run_meta.get("output_memory_alignment", core_options.get("output_memory_alignment", "")),
+                    no_inputs_allocation = str(run_meta.get("no_inputs_allocation", core_options.get("no_inputs_allocation", False))),
+                    no_outputs_allocation = str(run_meta.get("no_outputs_allocation", core_options.get("no_outputs_allocation", False))),
+                    core_command     = run_meta.get("core_command", ""),
+                    run_id           = run_meta.get("run_id", ""),
+                    benchmark_id     = run_meta.get("benchmark_id", ""),
+                    status           = "OK",
+                )
+                success_count += 1
 
-        except Exception as e:
-            error_count += 1
-            print(f"\n  ❌ [{i}/{total}] {task_name}")
-            print(f"     ERREUR: {str(e)[:80]}")
-            append_result(
-                model_name=model["name"], model_dir=model["relative_dir"],
-                type_framework=model["extension"].lstrip("."),
-                board=board, optimization=opt, compression=comp,
-                inference_time_ms="N/A", ram_ko="N/A", rom_ko="N/A",
-                macc="N/A", params="N/A",
-                status=f"ERREUR: {str(e)[:100]}",
-            )
+            except Exception as e:
+                error_count += 1
+                print(f"\n  ❌ [{i}/{total}] {task_name}")
+                print(f"     ERREUR: {str(e)[:80]}")
+                trigger = getattr(client.bench_svc, "last_trigger", {}) or {}
+                route = trigger.get("route", "")
+                payload = trigger.get("payload", {})
+                core_command = ""
+                if route:
+                    import json
+                    core_command = f"POST {route} payload={json.dumps(payload, sort_keys=True, ensure_ascii=False)}"
+                append_result(
+                    model_name=model["name"], model_dir=model["relative_dir"],
+                    type_framework=model["extension"].lstrip("."),
+                    board=board, optimization=opt, compression=comp,
+                    inference_time_ms="N/A", ram_ko="N/A", rom_ko="N/A",
+                    macc="N/A", params="N/A",
+                    core_version=version,
+                    target=core_options.get("target", ""),
+                    st_neural_art=core_options.get("st_neural_art", ""),
+                    memory_pool=core_options.get("memory_pool", ""),
+                    split_weights=str(core_options.get("split_weights", False)),
+                    allocate_activations=str(core_options.get("allocate_activations", False)),
+                    allocate_states=str(core_options.get("allocate_states", False)),
+                    input_memory_alignment=core_options.get("input_memory_alignment", ""),
+                    output_memory_alignment=core_options.get("output_memory_alignment", ""),
+                    no_inputs_allocation=str(core_options.get("no_inputs_allocation", False)),
+                    no_outputs_allocation=str(core_options.get("no_outputs_allocation", False)),
+                    core_command=core_command,
+                    status=f"ERREUR: {str(e)[:240]}",
+                )
+    except KeyboardInterrupt:
+        print("\n\n  Batch interrompu par l'utilisateur. Sauvegarde des resultats partiels.")
 
     end_time = datetime.datetime.now()
     duration = (end_time - start_time).total_seconds()
@@ -322,5 +477,5 @@ def run_batch_benchmark():
     print(f"  Erreurs          : {error_count} ({100*error_count/total:.1f}%)")
     print(f"  Duree totale     : {duration/60:.1f} minutes ({duration:.0f}s)")
     print(f"  Temps moyen/run  : {duration/total:.1f}s")
-    print(f"\n  Resultats sauvegardes dans: resultats/resultats.csv")
+    print(f"\n  Resultats sauvegardes dans: {RESULTS_DB}")
     print(f"{'='*60}\n")

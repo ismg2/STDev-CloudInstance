@@ -146,11 +146,12 @@ def plot_comparison_dashboard(df=None, board_filter=None):
     df["inference_time_ms"] = _to_numeric(df["inference_time_ms"])
     df["ram_ko"] = _to_numeric(df["ram_ko"])
     df["rom_ko"] = _to_numeric(df["rom_ko"])
-    df["precision"] = _to_numeric(df["precision"])
+    acc_col = "accuracy" if "accuracy" in df.columns else "precision"
+    df[acc_col] = _to_numeric(df[acc_col])
 
     has_inference = df["inference_time_ms"].notna().any()
     has_memory = df["ram_ko"].notna().any() or df["rom_ko"].notna().any()
-    has_precision = df["precision"].notna().any()
+    has_precision = df[acc_col].notna().any()
 
     n_plots = sum([has_inference, has_memory, has_precision])
     if n_plots == 0:
@@ -191,11 +192,11 @@ def plot_comparison_dashboard(df=None, board_filter=None):
 
     if has_precision:
         ax = axes[plot_idx]
-        ax.bar(x, df["precision"].fillna(0), color="#9C27B0")
+        ax.bar(x, df[acc_col].fillna(0), color="#9C27B0")
         ax.set_xticks(list(x))
         ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=7)
         ax.set_ylabel("%")
-        ax.set_title("Precision")
+        ax.set_title("Accuracy")
         ax.set_ylim(0, 105)
         ax.grid(axis="y", alpha=0.3)
 

@@ -81,6 +81,18 @@ EXTENSION_TO_TYPE = {
 # --input-data-type / --output-data-type
 DATA_TYPE_OPTIONS = ["float32", "int8", "uint8"]
 
+# Advanced options from ST Edge AI Core 4.0 CLI
+TARGET_OPTIONS = {
+    "auto": "Selection automatique (defaut)",
+    "stm32": "STM32 MCU generic target",
+    "stm32n6": "STM32N6 (NPU)",
+}
+
+ST_NEURAL_ART_OPTIONS = {
+    "none": "Desactive (defaut)",
+    "default": "Profil Neural-ART par defaut",
+}
+
 # -v / --verbosity
 VERBOSITY_OPTIONS = {
     0: "Silencieux",
@@ -111,6 +123,10 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR  = os.path.join(PROJECT_DIR, "modeles")
 RESULTS_DIR = os.path.join(PROJECT_DIR, "resultats")
 RESULTS_CSV = os.path.join(RESULTS_DIR, "resultats.csv")
+RESULTS_DB  = os.path.join(RESULTS_DIR, "resultats.db")
+LOGS_DIR    = os.path.join(RESULTS_DIR, "logs")
+RUN_LOGS_JSONL = os.path.join(LOGS_DIR, "benchmarks.jsonl")
+EXPORT_CSV_ON_APPEND = os.environ.get("EXPORT_CSV_ON_APPEND", "0") == "1"
 
 # ST Edge AI Core 4.0 (version courante)
 STEDGEAI_DEFAULT_VERSION = os.environ.get("STEDGEAI_VERSION", "4.0.0")
@@ -140,6 +156,20 @@ CSV_COLUMNS = [
     "rmse",
     "mae",
     "l2r",
+    "core_version",
+    "target",
+    "st_neural_art",
+    "memory_pool",
+    "split_weights",
+    "allocate_activations",
+    "allocate_states",
+    "input_memory_alignment",
+    "output_memory_alignment",
+    "no_inputs_allocation",
+    "no_outputs_allocation",
+    "core_command",
+    "run_id",
+    "benchmark_id",
     "date",
     "status",
 ]
