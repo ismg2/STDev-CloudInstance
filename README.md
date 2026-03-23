@@ -19,6 +19,25 @@ CLI Python pour lancer des benchmarks de modeles AI sur des boards STM32 via ST 
 - Stockage principal: SQLite
 - CSV conserve pour export/compatibilite
 
+## Versioning Et Releases
+- Branche courante de release: release/v1.1
+- Baseline stable a conserver: v1.0.0 (a publier via tag + GitHub Release)
+- Flux Git recommande:
+  1. Ajouter/clarifier requirement dans Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
+  2. Creer branche feature depuis release/vX.Y
+  3. Ouvrir PR vers release/vX.Y
+  4. Lancer regression complete: python run_ci_tests.py
+  5. Finaliser release notes puis PR release/vX.Y -> main
+
+## Workflow Requirements (Step-by-Step)
+- Backlog requirements: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
+- Process complet: Documentation/Project/Planning/REQUIREMENTS_WORKFLOW.md
+- Roadmap versions: Documentation/Project/Planning/VERSION_ROADMAP.md
+- Changelog: Documentation/Project/Releases/CHANGELOG.md
+- Notes de release par version: Documentation/Project/Releases/
+- Traceability requirements/tests: Documentation/Project/Traceability/REQUIREMENTS_TO_TESTS.md
+- Traceability requirements/releases: Documentation/Project/Traceability/REQUIREMENTS_TO_RELEASES.md
+
 ## Installation
 1. Installer dependances:
 
@@ -71,6 +90,11 @@ python run_ci_tests.py
 - Skills + contexte IA: Documentation/Project/AI/SKILLS_AND_CONTEXT.md
 - Contexte projet detaille: Documentation/Project/Context/PROJECT_CONTEXT.md
 - Plan de developpement: Documentation/Project/Planning/DEVELOPMENT_PLAN.md
+- Backlog requirements: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
+- Workflow requirements: Documentation/Project/Planning/REQUIREMENTS_WORKFLOW.md
+- Roadmap versions: Documentation/Project/Planning/VERSION_ROADMAP.md
+- Changelog: Documentation/Project/Releases/CHANGELOG.md
+- Release v1.0.0: Documentation/Project/Releases/v1.0.0.md
 - Docs ST Edge AI Core: Documentation/ST Edge AI Core 4.0/
 - Synthese API Dev Cloud: Documentation/ST Edge AI Dev Cloud/ST_EdgeAI_Developer_Cloud_FULL.md
 
@@ -98,11 +122,23 @@ STDev-CloudInstance/
 |   |   |   `-- SKILLS_AND_CONTEXT.md
 |   |   |-- Context/
 |   |   |   `-- PROJECT_CONTEXT.md
+|   |   |-- Releases/
+|   |   |   |-- CHANGELOG.md
+|   |   |   `-- v1.0.0.md
 |   |   `-- Planning/
-|   |       `-- DEVELOPMENT_PLAN.md
+|   |       |-- DEVELOPMENT_PLAN.md
+|   |       |-- REQUIREMENTS_BACKLOG.md
+|   |       |-- REQUIREMENTS_WORKFLOW.md
+|   |       `-- VERSION_ROADMAP.md
+|   |-- Traceability/
+|   |   |-- REQUIREMENTS_TO_TESTS.md
+|   |   `-- REQUIREMENTS_TO_RELEASES.md
 |   |-- ST Edge AI Core 4.0/
 |   `-- ST Edge AI Dev Cloud/
 |-- README.md
+|-- CONTRIBUTING.md
+|-- .github/
+|   `-- PULL_REQUEST_TEMPLATE.md
 |-- CLAUDE.md  (redirect)
 `-- PLAN.md    (redirect)
 ```

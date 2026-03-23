@@ -54,3 +54,20 @@ CLI Python pour benchmarker des modeles AI sur le ST Edge AI Developer Cloud, av
 2. Lire Documentation/Project/AI/SKILLS_AND_CONTEXT.md
 3. Valider l'etat avec python run_ci_tests.py
 4. Appliquer changements incrementaux avec tests associes
+
+## Version Workflow Policy
+- Requirements intake file: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
+- Process file: Documentation/Project/Planning/REQUIREMENTS_WORKFLOW.md
+- Version roadmap: Documentation/Project/Planning/VERSION_ROADMAP.md
+- Changelog: Documentation/Project/Releases/CHANGELOG.md
+- Branch model:
+  - integration branch per version: release/vX.Y
+  - feature branches merged into release/vX.Y
+  - release branch merged to main at release close
+- PR target policy:
+  - feature PR -> release/vX.Y
+  - release PR -> main
+
+## Release Snapshot
+- Active release branch: release/v1.1
+- Legacy baseline to keep downloadable: v1.0.0 (Git tag + GitHub Release)
