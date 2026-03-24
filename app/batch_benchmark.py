@@ -1,6 +1,6 @@
-"""Batch benchmark module — Interactive multi-selection for boards, optimizations, compressions."""
+﻿"""Batch benchmark module ΓÇö Interactive multi-selection for boards, optimizations, compressions."""
 
-from config import OPTIMIZATION_OPTIONS, COMPRESSION_OPTIONS
+from app.config import OPTIMIZATION_OPTIONS, COMPRESSION_OPTIONS
 
 
 def _is_npu_board_name(board_name: str) -> bool:
@@ -73,7 +73,7 @@ def select_multiple_boards(boards: list) -> list:
         print(f"{'='*60}")
 
         for i, board in enumerate(boards, 1):
-            marker = " ✓" if board in selected else ""
+            marker = " Γ£ô" if board in selected else ""
             print(f"  [{i:2}] {board}{marker}")
 
         print(f"\n  [A] Selectionner TOUS les boards")
@@ -87,25 +87,25 @@ def select_multiple_boards(boards: list) -> list:
             return []
         elif choice == "OK":
             if not selected:
-                print("\n  ⚠ Aucun board selectionne.")
+                print("\n  ΓÜá Aucun board selectionne.")
                 continue
             return selected
         elif choice == "A":
             selected = boards.copy()
-            print(f"  → {len(selected)} board(s) selectionne(s).")
+            print(f"  ΓåÆ {len(selected)} board(s) selectionne(s).")
         elif choice == "C":
             selected = []
-            print("  → Selection effacee.")
+            print("  ΓåÆ Selection effacee.")
         elif choice.isdigit():
             idx = int(choice) - 1
             if 0 <= idx < len(boards):
                 board = boards[idx]
                 if board in selected:
                     selected.remove(board)
-                    print(f"  → {board} retire de la selection.")
+                    print(f"  ΓåÆ {board} retire de la selection.")
                 else:
                     selected.append(board)
-                    print(f"  → {board} ajoute a la selection.")
+                    print(f"  ΓåÆ {board} ajoute a la selection.")
             else:
                 print("  Choix invalide.")
         else:
@@ -132,9 +132,9 @@ def select_multiple_options(title: str, options: dict, default_key: str) -> list
         print(f"{'='*60}")
 
         for i, (k, desc) in enumerate(options.items(), 1):
-            marker = " ✓" if k in selected else ""
+            marker = " Γ£ô" if k in selected else ""
             default_marker = " (defaut)" if k == default_key else ""
-            print(f"  [{i}] {k:<12} — {desc}{default_marker}{marker}")
+            print(f"  [{i}] {k:<12} ΓÇö {desc}{default_marker}{marker}")
 
         print(f"\n  [A] Selectionner TOUTES les options")
         print(f"  [D] Selectionner uniquement le defaut ({default_key})")
@@ -148,28 +148,28 @@ def select_multiple_options(title: str, options: dict, default_key: str) -> list
             return []
         elif choice == "OK":
             if not selected:
-                print("\n  ⚠ Aucune option selectionnee.")
+                print("\n  ΓÜá Aucune option selectionnee.")
                 continue
             return selected
         elif choice == "A":
             selected = keys.copy()
-            print(f"  → {len(selected)} option(s) selectionnee(s).")
+            print(f"  ΓåÆ {len(selected)} option(s) selectionnee(s).")
         elif choice == "D":
             selected = [default_key]
-            print(f"  → Seulement '{default_key}' selectionne.")
+            print(f"  ΓåÆ Seulement '{default_key}' selectionne.")
         elif choice == "C":
             selected = []
-            print("  → Selection effacee.")
+            print("  ΓåÆ Selection effacee.")
         elif choice.isdigit():
             idx = int(choice) - 1
             if 0 <= idx < len(keys):
                 key = keys[idx]
                 if key in selected:
                     selected.remove(key)
-                    print(f"  → '{key}' retire de la selection.")
+                    print(f"  ΓåÆ '{key}' retire de la selection.")
                 else:
                     selected.append(key)
-                    print(f"  → '{key}' ajoute a la selection.")
+                    print(f"  ΓåÆ '{key}' ajoute a la selection.")
             else:
                 print("  Choix invalide.")
         else:
@@ -191,7 +191,7 @@ def interactive_batch_benchmark(core_version: str = ""):
 
     # Step 1: Select models
     print("  Etape 1/4 : Selection des modeles")
-    from model_discovery import interactive_model_selection
+    from app.model_discovery import interactive_model_selection
     models = interactive_model_selection()
     if not models:
         print("  Batch annule.")
@@ -203,7 +203,7 @@ def interactive_batch_benchmark(core_version: str = ""):
 
     # Step 2: Select boards (multi)
     print("\n  Etape 2/4 : Selection des boards")
-    from cloud_api import CloudClient
+    from app.cloud_api import CloudClient
     from main import AVAILABLE_BOARDS
     try:
         client = CloudClient(version=core_version or None)
@@ -288,7 +288,7 @@ def interactive_batch_benchmark(core_version: str = ""):
     print(f"  Versions Core  : {len(selected_versions)}")
     print(f"  Optimisations  : {len(optimizations)}")
     print(f"  Compressions   : {len(compressions)}")
-    print(f"  {'─'*58}")
+    print(f"  {'ΓöÇ'*58}")
     print(f"  TOTAL BENCHMARKS : {total_runs}")
     print(f"{'='*60}")
 
@@ -311,9 +311,9 @@ def interactive_batch_benchmark(core_version: str = ""):
 def run_batch_benchmark(core_version: str = ""):
     """Execute batch benchmark with progress tracking."""
     from tqdm import tqdm
-    from results_manager import append_result, ensure_storage_ready
-    from cloud_api import CloudClient
-    from config import RESULTS_DB
+    from app.results_manager import append_result, ensure_storage_ready
+    from app.cloud_api import CloudClient
+    from app.config import RESULTS_DB
     import datetime
 
     # Interactive configuration
@@ -370,7 +370,7 @@ def run_batch_benchmark(core_version: str = ""):
     error_count = 0
 
     print(f"\n{'='*60}")
-    print(f"  EXECUTION DU BATCH — {total} benchmarks")
+    print(f"  EXECUTION DU BATCH ΓÇö {total} benchmarks")
     print(f"{'='*60}\n")
 
     start_time = datetime.datetime.now()
@@ -434,7 +434,7 @@ def run_batch_benchmark(core_version: str = ""):
 
             except Exception as e:
                 error_count += 1
-                print(f"\n  ❌ [{i}/{total}] {task_name}")
+                print(f"\n  Γ¥î [{i}/{total}] {task_name}")
                 print(f"     ERREUR: {str(e)[:80]}")
                 trigger = getattr(client.bench_svc, "last_trigger", {}) or {}
                 route = trigger.get("route", "")

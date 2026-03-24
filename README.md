@@ -2,6 +2,18 @@
 
 CLI Python pour lancer des benchmarks de modeles AI sur des boards STM32 via ST Edge AI Developer Cloud.
 
+## Demarrage Rapide: Process Requirement + Dev
+1. Ouvrir le point d'entree documentation: Documentation/Project/START_HERE.md
+2. Rediger/choisir un requirement: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
+3. Suivre le guide d'iteration: Documentation/Project/REQUIREMENT_TO_RELEASE_GUIDE.md
+4. Implementer dans le code (sources dans app/) puis lancer les tests:
+
+```bash
+python run_ci_tests.py
+```
+
+5. Mettre a jour changelog + note de release: Documentation/Project/Releases/
+
 ## Objectif
 - Uploader un modele (.tflite/.onnx/.h5/.keras)
 - Lancer benchmark sur board physique STM32
@@ -105,17 +117,23 @@ python run_ci_tests.py
 ```text
 STDev-CloudInstance/
 |-- main.py
-|-- batch_benchmark.py
-|-- cloud_api.py
-|-- results_manager.py
-|-- dashboard.py
-|-- diagnostic_report.py
-|-- model_discovery.py
-|-- auth.py
-|-- config.py
+|-- app/
+|   |-- __init__.py
+|   |-- auth.py
+|   |-- batch_benchmark.py
+|   |-- cloud_api.py
+|   |-- config.py
+|   |-- dashboard.py
+|   |-- diagnostic_report.py
+|   |-- model_discovery.py
+|   `-- results_manager.py
 |-- tests/
 |-- modeles/
 |-- resultats/
+|-- Obsidian/
+|   |-- Dashboard/
+|   |-- Requirements/
+|   `-- Templates/
 |-- Documentation/
 |   |-- Project/
 |   |   |-- START_HERE.md

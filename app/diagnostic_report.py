@@ -1,4 +1,4 @@
-"""Diagnostic export utilities for consolidating CSV rows and JSONL logs by run_id."""
+﻿"""Diagnostic export utilities for consolidating CSV rows and JSONL logs by run_id."""
 
 import json
 import os
@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from config import RESULTS_CSV, RUN_LOGS_JSONL, RESULTS_DIR
+from app.config import RESULTS_CSV, RUN_LOGS_JSONL, RESULTS_DIR
 
 
 def _safe_run_id(run_id: str) -> str:

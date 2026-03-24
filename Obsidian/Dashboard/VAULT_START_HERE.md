@@ -1,4 +1,4 @@
-# Start Here - Requirement to Release Cockpit
+# Obsidian Vault Start Here
 
 ## First time setup
 1. Follow plugin setup: [PLUGIN_SETUP.md](PLUGIN_SETUP.md)

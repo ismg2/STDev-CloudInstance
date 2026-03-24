@@ -3,7 +3,7 @@
 Use this folder as a lightweight cockpit for requirement tracking and Codex routine.
 
 ## Start
-- [Dashboard/START_HERE.md](Dashboard/START_HERE.md)
+- [Dashboard/VAULT_START_HERE.md](Dashboard/VAULT_START_HERE.md)
 - [Dashboard/PLUGIN_SETUP.md](Dashboard/PLUGIN_SETUP.md)
 - [Dashboard/BACKLOG.md](Dashboard/BACKLOG.md)
 

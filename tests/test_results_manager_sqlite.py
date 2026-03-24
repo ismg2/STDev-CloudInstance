@@ -1,10 +1,10 @@
-import os
+﻿import os
 import tempfile
 import unittest
 
 import pandas as pd
 
-import results_manager
+import app.results_manager as results_manager
 
 
 class TestResultsManagerSQLite(unittest.TestCase):
@@ -71,3 +71,4 @@ class TestResultsManagerSQLite(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

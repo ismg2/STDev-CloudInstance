@@ -14,9 +14,9 @@ Donner a une IA de reprise une vue immediate de "ou trouver quoi" dans ce repo.
 
 ## Code Entry Points
 - main.py: CLI interactif + arguments directs.
-- cloud_api.py: auth cloud calls, benchmark trigger/poll, parse resultats.
-- results_manager.py: SQLite principal, migration CSV, tagging reference/versioning.
-- batch_benchmark.py: orchestration multi-modeles/multi-boards/multi-options.
+- app/cloud_api.py: auth cloud calls, benchmark trigger/poll, parse resultats.
+- app/results_manager.py: SQLite principal, migration CSV, tagging reference/versioning.
+- app/batch_benchmark.py: orchestration multi-modeles/multi-boards/multi-options.
 
 ## Key Decisions Already Implemented
 - Choix compute mode garde sous controle utilisateur (auto/cpu/npu/both selon contexte).

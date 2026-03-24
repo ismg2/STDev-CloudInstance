@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import tempfile
 import unittest
@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pandas as pd
 
-import diagnostic_report
+import app.diagnostic_report as diagnostic_report
 
 
 class TestDiagnosticReport(unittest.TestCase):
@@ -58,7 +58,7 @@ class TestDiagnosticReport(unittest.TestCase):
                 f.write(json.dumps({"event": "benchmark_done", "run_id": "run-123"}) + "\n")
                 f.write(json.dumps({"event": "other", "run_id": "run-456"}) + "\n")
 
-            with patch("diagnostic_report.RESULTS_CSV", csv_path), patch("diagnostic_report.RUN_LOGS_JSONL", logs_path):
+            with patch("app.diagnostic_report.RESULTS_CSV", csv_path), patch("app.diagnostic_report.RUN_LOGS_JSONL", logs_path):
                 report = diagnostic_report.export_diagnostic_report("run-123", out_dir)
 
             self.assertEqual(report["csv_rows_count"], 1)
@@ -70,3 +70,4 @@ class TestDiagnosticReport(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

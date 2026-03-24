@@ -1,4 +1,4 @@
-"""Visualization dashboard for benchmark results.
+﻿"""Visualization dashboard for benchmark results.
 
 Uses matplotlib for charts. Can be launched standalone or from the CLI.
 """
@@ -8,7 +8,7 @@ import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from results_manager import load_results, filter_results
+from app.results_manager import load_results, filter_results
 
 
 def _check_data(df):
@@ -96,7 +96,7 @@ def plot_memory(df=None, board_filter=None):
 
 
 def plot_accuracy(df=None):
-    """Bar chart of model accuracy — from val_metrics[].acc field."""
+    """Bar chart of model accuracy ΓÇö from val_metrics[].acc field."""
     if df is None:
         df = load_results()
     if not _check_data(df):

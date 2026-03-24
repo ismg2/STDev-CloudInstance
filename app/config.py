@@ -1,4 +1,4 @@
-"""Configuration for STEdgeAI Developer Cloud CLI.
+﻿"""Configuration for STEdgeAI Developer Cloud CLI.
 
 Endpoints and parameters sourced from:
   - ST official backend: STMicroelectronics/stm32ai-modelzoo-services
@@ -119,7 +119,7 @@ VERBOSITY_OPTIONS = {
 # ---------------------------------------------------------------------------
 
 TOKEN_FILE  = os.path.expanduser("~/.stmai_token")
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODELS_DIR  = os.path.join(PROJECT_DIR, "modeles")
 RESULTS_DIR = os.path.join(PROJECT_DIR, "resultats")
 RESULTS_CSV = os.path.join(RESULTS_DIR, "resultats.csv")

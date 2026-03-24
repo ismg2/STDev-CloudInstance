@@ -1,1 +1,0 @@
-modele;dossier;type_framework;board;optimization;compression;inference_time_ms;ram_ko;rom_ko;macc;params;accuracy;rmse;mae;l2r;core_version;target;st_neural_art;memory_pool;split_weights;allocate_activations;allocate_states;input_memory_alignment;output_memory_alignment;no_inputs_allocation;no_outputs_allocation;core_command;run_id;benchmark_id;date;status

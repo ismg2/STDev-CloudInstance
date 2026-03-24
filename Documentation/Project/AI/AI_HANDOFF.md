@@ -17,15 +17,15 @@ CLI Python pour benchmarker des modeles AI sur le ST Edge AI Developer Cloud, av
 ## File-Level Responsibilities
 - main.py
   - menu principal, CLI args, benchmark simple, operations reference/history/export
-- batch_benchmark.py
+- app/batch_benchmark.py
   - configuration batch interactive, expansion queue, execution multi-combinaisons
-- cloud_api.py
+- app/cloud_api.py
   - HTTP calls cloud, validation options board, polling benchmark, parser metrics, logging JSONL
-- results_manager.py
+- app/results_manager.py
   - schema SQLite, migration CSV->DB, append/load/filter, tags reference, version history
-- dashboard.py
+- app/dashboard.py
   - visualisation matplotlib a partir de load_results
-- diagnostic_report.py
+- app/diagnostic_report.py
   - export consolide par run_id (rows + events)
 
 ## Data Locations

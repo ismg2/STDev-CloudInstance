@@ -1,8 +1,8 @@
-"""Model discovery module - scans and navigates model directories."""
+﻿"""Model discovery module - scans and navigates model directories."""
 
 import os
 
-from config import MODELS_DIR, MODEL_EXTENSIONS
+from app.config import MODELS_DIR, MODEL_EXTENSIONS
 
 
 def scan_models(root_dir=None):
@@ -99,7 +99,7 @@ def interactive_model_selection():
         if subdirs:
             print("\n  Sous-dossiers:")
             for d in subdirs:
-                print(f"    [{idx}] 📁 {d}/")
+                print(f"    [{idx}] ≡ƒôü {d}/")
                 options.append(("dir", os.path.join(current_dir, d)))
                 idx += 1
 
@@ -107,8 +107,8 @@ def interactive_model_selection():
         if models:
             print("\n  Modeles disponibles:")
             for m in models:
-                marker = " ✓" if m in selected else ""
-                print(f"    [{idx}] 🤖 {m['name']} ({m['extension']}){marker}")
+                marker = " Γ£ô" if m in selected else ""
+                print(f"    [{idx}] ≡ƒñû {m['name']} ({m['extension']}){marker}")
                 options.append(("model", m))
                 idx += 1
 
@@ -129,7 +129,7 @@ def interactive_model_selection():
             return []
         elif choice == "OK":
             if not selected:
-                print("\n  ⚠ Aucun modele selectionne.")
+                print("\n  ΓÜá Aucun modele selectionne.")
                 continue
             return selected
         elif choice == "R":
@@ -142,13 +142,13 @@ def interactive_model_selection():
             for m in models:
                 if m not in selected:
                     selected.append(m)
-            print(f"  → {len(models)} modele(s) ajoute(s) a la selection.")
+            print(f"  ΓåÆ {len(models)} modele(s) ajoute(s) a la selection.")
         elif choice == "T":
             all_models = scan_models(current_dir)
             for m in all_models:
                 if m not in selected:
                     selected.append(m)
-            print(f"  → {len(all_models)} modele(s) ajoute(s) (recursif).")
+            print(f"  ΓåÆ {len(all_models)} modele(s) ajoute(s) (recursif).")
         elif choice == "V":
             if selected:
                 print("\n  Selection actuelle:")
@@ -165,10 +165,10 @@ def interactive_model_selection():
                 elif opt_type == "model":
                     if opt_val in selected:
                         selected.remove(opt_val)
-                        print(f"  → {opt_val['name']} retire de la selection.")
+                        print(f"  ΓåÆ {opt_val['name']} retire de la selection.")
                     else:
                         selected.append(opt_val)
-                        print(f"  → {opt_val['name']} ajoute a la selection.")
+                        print(f"  ΓåÆ {opt_val['name']} ajoute a la selection.")
             else:
                 print("  Choix invalide.")
         else:

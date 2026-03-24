@@ -1,6 +1,6 @@
-import unittest
+﻿import unittest
 
-from cloud_api import (
+from app.cloud_api import (
     parse_analyze_result,
     parse_benchmark_result,
     parse_mpu_benchmark_result,
@@ -181,3 +181,4 @@ class TestCloudApiParsers(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

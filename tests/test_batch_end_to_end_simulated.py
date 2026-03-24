@@ -1,12 +1,12 @@
-import os
+﻿import os
 import tempfile
 import unittest
 from unittest.mock import patch
 
 import pandas as pd
 
-import batch_benchmark
-import results_manager
+import app.batch_benchmark as batch_benchmark
+import app.results_manager as results_manager
 
 
 class _FakeCloudClient:
@@ -48,7 +48,7 @@ class _FakeCloudClient:
 
 
 class TestBatchEndToEndSimulated(unittest.TestCase):
-    @patch("cloud_api.CloudClient", _FakeCloudClient)
+    @patch("app.cloud_api.CloudClient", _FakeCloudClient)
     def test_batch_writes_core_command_to_csv(self):
         with tempfile.TemporaryDirectory() as tmp:
             old_csv = results_manager.RESULTS_CSV
@@ -80,7 +80,7 @@ class TestBatchEndToEndSimulated(unittest.TestCase):
                     },
                 }
 
-                with patch("batch_benchmark.interactive_batch_benchmark", return_value=cfg):
+                with patch("app.batch_benchmark.interactive_batch_benchmark", return_value=cfg):
                     batch_benchmark.run_batch_benchmark(core_version="4.0.0")
 
                 df = results_manager.load_results()
@@ -96,3 +96,4 @@ class TestBatchEndToEndSimulated(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

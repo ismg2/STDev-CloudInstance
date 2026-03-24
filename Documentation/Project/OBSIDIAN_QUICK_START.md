@@ -11,7 +11,7 @@ This is the minimal version to avoid complexity.
 - Minimal files only
 
 ## Quick Navigation
-- Start here dashboard: [Obsidian/Dashboard/START_HERE.md](../../Obsidian/Dashboard/START_HERE.md)
+- Start here dashboard: [Obsidian/Dashboard/VAULT_START_HERE.md](../../Obsidian/Dashboard/VAULT_START_HERE.md)
 - Backlog dashboard: [Obsidian/Dashboard/BACKLOG.md](../../Obsidian/Dashboard/BACKLOG.md)
 - Requirement template: [Obsidian/Templates/REQUIREMENT_TEMPLATE.md](../../Obsidian/Templates/REQUIREMENT_TEMPLATE.md)
 

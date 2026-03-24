@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
-"""CLI Model Zoo Benchmark — ST Edge AI Developer Cloud.
+﻿#!/usr/bin/env python3
+"""CLI Model Zoo Benchmark ΓÇö ST Edge AI Developer Cloud.
 
-Script interactif en ligne de commande pour benchmarker des modèles AI
-sur des boards STM32 réelles via l'API REST ST Edge AI Developer Cloud.
+Script interactif en ligne de commande pour benchmarker des mod├¿les AI
+sur des boards STM32 r├⌐elles via l'API REST ST Edge AI Developer Cloud.
 
 ST Edge AI Core 4.0 supported:
   Frameworks : keras (.h5/.keras), tflite (.tflite), onnx (.onnx)
@@ -10,13 +10,13 @@ ST Edge AI Core 4.0 supported:
   Compression : none | lossless | low | medium | high
 
 Usage:
-  python main.py                  → Menu interactif guidé
-  python main.py --benchmark      → Lancer un benchmark simple
-  python main.py --batch          → Batch benchmark (multi-selection)
-  python main.py --results        → Afficher les résultats
-  python main.py --visualize      → Dashboard graphique
-  python main.py --models         → Lister les modèles
-  python main.py --help           → Aide
+  python main.py                  ΓåÆ Menu interactif guid├⌐
+  python main.py --benchmark      ΓåÆ Lancer un benchmark simple
+  python main.py --batch          ΓåÆ Batch benchmark (multi-selection)
+  python main.py --results        ΓåÆ Afficher les r├⌐sultats
+  python main.py --visualize      ΓåÆ Dashboard graphique
+  python main.py --models         ΓåÆ Lister les mod├¿les
+  python main.py --help           ΓåÆ Aide
 """
 
 import argparse
@@ -25,14 +25,14 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import (
+from app.config import (
     MODELS_DIR, RESULTS_DIR,
     OPTIMIZATION_OPTIONS, OPTIMIZATION_DEFAULT,
     COMPRESSION_OPTIONS, COMPRESSION_DEFAULT,
     RESULTS_DB,
 )
-from model_discovery import interactive_model_selection, scan_models
-from results_manager import (
+from app.model_discovery import interactive_model_selection, scan_models
+from app.results_manager import (
     append_result,
     display_results,
     load_results,
@@ -43,7 +43,7 @@ from results_manager import (
     get_active_reference,
     get_version_history,
 )
-from dashboard import interactive_dashboard, plot_comparison_dashboard
+from app.dashboard import interactive_dashboard, plot_comparison_dashboard
 
 # Fallback board list if cloud API is unreachable at board selection time
 AVAILABLE_BOARDS = [
@@ -59,10 +59,10 @@ AVAILABLE_BOARDS = [
 ]
 
 BANNER = r"""
-  ╔══════════════════════════════════════════════════════╗
-  ║       CLI Model Zoo Benchmark                        ║
-  ║       ST Edge AI Core 4.0 — Developer Cloud          ║
-  ╚══════════════════════════════════════════════════════╝
+  ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù
+  Γòæ       CLI Model Zoo Benchmark                        Γòæ
+  Γòæ       ST Edge AI Core 4.0 ΓÇö Developer Cloud          Γòæ
+  ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥
 """
 
 
@@ -71,7 +71,7 @@ BANNER = r"""
 # ---------------------------------------------------------------------------
 
 def select_board(client=None) -> str:
-    """Interactive board selection — fetches live list from cloud."""
+    """Interactive board selection ΓÇö fetches live list from cloud."""
     boards = AVAILABLE_BOARDS
     if client:
         try:
@@ -93,7 +93,7 @@ def select_board(client=None) -> str:
             selected = boards[int(choice) - 1]
             if isinstance(selected, dict):
                 selected = selected.get("name", str(selected))
-            print(f"  → Board: {selected}")
+            print(f"  ΓåÆ Board: {selected}")
             return selected
         print("  Choix invalide.")
 
@@ -104,8 +104,8 @@ def select_option(title: str, options: dict, default: str) -> str:
     keys = list(options.keys())
     for i, (k, desc) in enumerate(options.items(), 1):
         marker = " (defaut)" if k == default else ""
-        print(f"    [{i}] {k:<12} — {desc}{marker}")
-    print(f"    [Entrée] Garder le defaut ({default})")
+        print(f"    [{i}] {k:<12} ΓÇö {desc}{marker}")
+    print(f"    [Entr├⌐e] Garder le defaut ({default})")
 
     choice = input(f"  Choix > ").strip()
     if not choice:
@@ -117,7 +117,7 @@ def select_option(title: str, options: dict, default: str) -> str:
 
 
 def select_core_version(default_version: str = "") -> str:
-    from cloud_api import CloudClient
+    from app.cloud_api import CloudClient
 
     versions = CloudClient.available_versions()
     if not versions:
@@ -188,7 +188,7 @@ def collect_simple_core_preferences(memory_analysis: dict = None) -> dict:
     recommended_split = False
     recommended_alloc = False
     if memory_analysis:
-        from cloud_api import build_memory_visibility_report, recommend_memory_pooling
+        from app.cloud_api import build_memory_visibility_report, recommend_memory_pooling
 
         visibility = build_memory_visibility_report(memory_analysis)
         recommendation = recommend_memory_pooling(memory_analysis)
@@ -299,7 +299,7 @@ def build_core_options_for_board(board_name: str, simple_preferences: dict) -> d
 # ---------------------------------------------------------------------------
 
 def run_benchmark(core_version: str = ""):
-    """Full benchmark workflow: select models → board → options → run → save."""
+    """Full benchmark workflow: select models ΓåÆ board ΓåÆ options ΓåÆ run ΓåÆ save."""
     print("\n  === LANCEMENT D'UN BENCHMARK ===\n")
 
     # 1. Select models
@@ -319,7 +319,7 @@ def run_benchmark(core_version: str = ""):
 
     # 3. Select board
     print("\n  Etape 2/4 : Selection du board")
-    from cloud_api import CloudClient, CloudAPIError
+    from app.cloud_api import CloudClient, CloudAPIError
     try:
         client = CloudClient(version=selected_version)
     except Exception as e:
@@ -366,11 +366,11 @@ def run_benchmark(core_version: str = ""):
 
     # 6. Confirm
     print(f"\n  Etape 5/5 : Confirmation")
-    print(f"  → {len(models)} modele(s) | Board: {board}")
-    print(f"  → Core version: {selected_version}")
-    print(f"  → Optimization: {optimization} | Compression: {compression}")
+    print(f"  ΓåÆ {len(models)} modele(s) | Board: {board}")
+    print(f"  ΓåÆ Core version: {selected_version}")
+    print(f"  ΓåÆ Optimization: {optimization} | Compression: {compression}")
     print(
-        "  → Core options: "
+        "  ΓåÆ Core options: "
         f"target={core_options.get('target')}, "
         f"st_neural_art={core_options.get('st_neural_art') or 'none'}, "
         f"split_weights={core_options.get('split_weights')}, "
@@ -387,7 +387,7 @@ def run_benchmark(core_version: str = ""):
 
     for i, model in enumerate(models, 1):
         print(f"\n  [{i}/{len(models)}] {model['name']}")
-        print(f"  {'─'*45}")
+        print(f"  {'ΓöÇ'*45}")
         try:
             metrics = client.run_benchmark(
                 model["path"], board,
@@ -433,7 +433,7 @@ def run_benchmark(core_version: str = ""):
             r = metrics.get("ram_ko", "N/A")
             o = metrics.get("rom_ko", "N/A")
             a = metrics.get("accuracy", "N/A")
-            print(f"  OK — Inference: {t}ms | RAM: {r}Ko | ROM: {o}Ko | Accuracy: {a}")
+            print(f"  OK ΓÇö Inference: {t}ms | RAM: {r}Ko | ROM: {o}Ko | Accuracy: {a}")
 
         except Exception as e:
             error_count += 1
@@ -599,7 +599,7 @@ def main_menu():
         elif choice == "2":
             run_benchmark()
         elif choice == "3":
-            from batch_benchmark import run_batch_benchmark
+            from app.batch_benchmark import run_batch_benchmark
             run_batch_benchmark()
         elif choice == "4":
             show_results_menu()
@@ -607,8 +607,8 @@ def main_menu():
             interactive_dashboard()
         elif choice == "6":
             try:
-                from auth import get_bearer_token
-                from cloud_api import get_latest_version
+                from app.auth import get_bearer_token
+                from app.cloud_api import get_latest_version
                 token = get_bearer_token()
                 ver   = get_latest_version(token)
                 print(f"\n  Token valide: {token[:20]}...")
@@ -626,7 +626,7 @@ def main_menu():
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="CLI Model Zoo Benchmark — ST Edge AI Core 4.0",
+        description="CLI Model Zoo Benchmark ΓÇö ST Edge AI Core 4.0",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples:
@@ -671,16 +671,16 @@ if __name__ == "__main__":
         run_benchmark(core_version=args.core_version or "")
     elif args.batch:
         print(BANNER)
-        from batch_benchmark import run_batch_benchmark
+        from app.batch_benchmark import run_batch_benchmark
         run_batch_benchmark(core_version=args.core_version or "")
     elif args.list_core_versions:
-        from cloud_api import CloudClient
+        from app.cloud_api import CloudClient
         versions = CloudClient.available_versions()
         print("Versions STEdgeAI Core disponibles:")
         for v in versions:
             print(f"  - {v}")
     elif args.diagnostic_run_id:
-        from diagnostic_report import export_diagnostic_report
+        from app.diagnostic_report import export_diagnostic_report
         report = export_diagnostic_report(args.diagnostic_run_id, args.diagnostic_output or "")
         print("Rapport de diagnostic genere:")
         print(f"  run_id        : {report['run_id']}")

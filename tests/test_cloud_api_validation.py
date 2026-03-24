@@ -1,6 +1,6 @@
-import unittest
+﻿import unittest
 
-from cloud_api import CloudAPIError, validate_benchmark_options
+from app.cloud_api import CloudAPIError, validate_benchmark_options
 
 
 class TestBenchmarkOptionValidation(unittest.TestCase):
@@ -40,3 +40,4 @@ class TestBenchmarkOptionValidation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

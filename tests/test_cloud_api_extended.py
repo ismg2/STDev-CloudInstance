@@ -1,7 +1,7 @@
-import unittest
+﻿import unittest
 from unittest.mock import patch
 
-import cloud_api
+import app.cloud_api as cloud_api
 
 
 class _FakeResponse:
@@ -15,7 +15,7 @@ class _FakeResponse:
 
 
 class TestCloudApiExtended(unittest.TestCase):
-    @patch("cloud_api.requests.get")
+    @patch("app.cloud_api.requests.get")
     def test_get_available_versions(self, mock_get):
         mock_get.return_value = _FakeResponse(200, [
             {"version": "3.2.0"},
@@ -37,8 +37,8 @@ class TestCloudApiExtended(unittest.TestCase):
         hint = cloud_api.actionable_error_hint("InvalidModelError: unsupported ops")
         self.assertIn("format", hint)
 
-    @patch("cloud_api._append_jsonl")
-    @patch("cloud_api._send_post")
+    @patch("app.cloud_api._append_jsonl")
+    @patch("app.cloud_api._send_post")
     def test_trigger_benchmark_with_advanced_options(self, mock_post, _mock_log):
         mock_post.return_value = _FakeResponse(200, {"benchmarkId": "bench-1"})
 
@@ -113,7 +113,7 @@ class _FakeBenchService:
 
 
 class TestCloudClientRunMeta(unittest.TestCase):
-    @patch("cloud_api._append_jsonl")
+    @patch("app.cloud_api._append_jsonl")
     def test_run_benchmark_includes_core_command_meta(self, _mock_log):
         client = cloud_api.CloudClient.__new__(cloud_api.CloudClient)
         client.__dict__["version"] = "4.0.0"
@@ -136,3 +136,4 @@ class TestCloudClientRunMeta(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
