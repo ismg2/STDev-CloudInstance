@@ -7,6 +7,14 @@
 
 ## Planned
 
+### v1.1.1
+- Scope:
+  - Minimal Obsidian workflow package
+  - Plugin setup tutorial for quick start
+  - Reduced file count to keep process simple
+- Branch: release/v1.1
+- Status: done (documentation patch)
+
 ### v1.1.0
 - Scope:
   - Guided memory pooling assistant (analysis + visibility + recommendation)

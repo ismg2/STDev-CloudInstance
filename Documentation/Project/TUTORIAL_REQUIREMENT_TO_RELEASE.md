@@ -99,13 +99,13 @@ python run_ci_tests.py
 
 ## 4. TODO Tag Convention
 Use these tags in Decision Notes and optionally commit messages:
-- TODO-REQ-<ID>-DISCUSS
-- TODO-REQ-<ID>-DECIDE
-- TODO-REQ-<ID>-IMPLEMENT
-- TODO-REQ-<ID>-TEST
-- TODO-REQ-<ID>-DOC
-- TODO-REQ-<ID>-PR
-- TODO-REQ-<ID>-RELEASE
+- `TODO-REQ-<ID>-DISCUSS`
+- `TODO-REQ-<ID>-DECIDE`
+- `TODO-REQ-<ID>-IMPLEMENT
+- `TODO-REQ-<ID>-TEST
+- `TODO-REQ-<ID>-DOC
+- `TODO-REQ-<ID>-PR
+- `TODO-REQ-<ID>-RELEASE
 
 Example:
 - TODO-REQ-120-DISCUSS

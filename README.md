@@ -31,6 +31,7 @@ CLI Python pour lancer des benchmarks de modeles AI sur des boards STM32 via ST 
 
 ## Workflow Requirements (Step-by-Step)
 - Tutorial complet: Documentation/Project/TUTORIAL_REQUIREMENT_TO_RELEASE.md
+- Tutorial Obsidian (Option B): Documentation/Project/OBSIDIAN_OPTION_B_TUTORIAL.md
 - Backlog requirements: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
 - Process complet: Documentation/Project/Planning/REQUIREMENTS_WORKFLOW.md
 - Roadmap versions: Documentation/Project/Planning/VERSION_ROADMAP.md

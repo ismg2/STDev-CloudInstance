@@ -6,6 +6,7 @@
 - Full project context: Documentation/Project/Context/PROJECT_CONTEXT.md
 - Development plan: Documentation/Project/Planning/DEVELOPMENT_PLAN.md
 - End-to-end tutorial: Documentation/Project/TUTORIAL_REQUIREMENT_TO_RELEASE.md
+- Obsidian Option B tutorial: Documentation/Project/OBSIDIAN_OPTION_B_TUTORIAL.md
 
 ## Requirements And Version Workflow
 - Requirement backlog: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
@@ -17,6 +18,7 @@
 ## Releases
 - Changelog: Documentation/Project/Releases/CHANGELOG.md
 - Release notes template: Documentation/Project/Releases/RELEASE_NOTES_TEMPLATE.md
+- Obsidian patch release note: Documentation/Project/Releases/v1.1.1.md
 - Current baseline release note: Documentation/Project/Releases/v1.0.0.md
 
 ## Traceability

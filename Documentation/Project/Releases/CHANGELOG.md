@@ -4,11 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
-- Requirements governance and release process documentation.
-- PR template and contribution flow for version branches.
+- Further workflow refinements planned.
+
+## [1.1.1] - 2026-03-24
+See Releases/v1.1.1.md.
+
+### Added
+- Obsidian Option B tutorial for requirement-to-release flow.
 
 ### Changed
-- Documentation navigation now includes roadmap, backlog, and release notes.
+- Reduced Obsidian setup to minimal required files.
+- Simplified plugin installation guidance (core + optional plugins).
 
 ## [1.1.0] - TBD
 See Releases/v1.1.0.md (to be created at release freeze).
