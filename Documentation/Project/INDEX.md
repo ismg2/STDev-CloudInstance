@@ -5,6 +5,7 @@
 - Skills and context map: Documentation/Project/AI/SKILLS_AND_CONTEXT.md
 - Full project context: Documentation/Project/Context/PROJECT_CONTEXT.md
 - Development plan: Documentation/Project/Planning/DEVELOPMENT_PLAN.md
+- End-to-end tutorial: Documentation/Project/TUTORIAL_REQUIREMENT_TO_RELEASE.md
 
 ## Requirements And Version Workflow
 - Requirement backlog: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md

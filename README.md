@@ -30,6 +30,7 @@ CLI Python pour lancer des benchmarks de modeles AI sur des boards STM32 via ST 
   5. Finaliser release notes puis PR release/vX.Y -> main
 
 ## Workflow Requirements (Step-by-Step)
+- Tutorial complet: Documentation/Project/TUTORIAL_REQUIREMENT_TO_RELEASE.md
 - Backlog requirements: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
 - Process complet: Documentation/Project/Planning/REQUIREMENTS_WORKFLOW.md
 - Roadmap versions: Documentation/Project/Planning/VERSION_ROADMAP.md
@@ -146,6 +147,7 @@ STDev-CloudInstance/
 ## Notes Pour Reprise IA
 Pour une reprise rapide par une autre IA:
 1. Lire Documentation/Project/INDEX.md
-2. Lire Documentation/Project/AI/AI_HANDOFF.md
-3. Executer python run_ci_tests.py
-4. Continuer en gardant SQLite comme source de verite
+2. Lire Documentation/Project/TUTORIAL_REQUIREMENT_TO_RELEASE.md
+3. Lire Documentation/Project/AI/AI_HANDOFF.md
+4. Executer python run_ci_tests.py
+5. Continuer en gardant SQLite comme source de verite
