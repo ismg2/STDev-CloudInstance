@@ -156,7 +156,7 @@ def actionable_error_hint(message: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# FileService  ΓåÆ  {BASE_URL}api/file/files/models
+# FileService  ->  {BASE_URL}api/file/files/models
 # ---------------------------------------------------------------------------
 
 class FileService:
@@ -165,7 +165,7 @@ class FileService:
         self.token = token
 
     def list_models(self) -> list:
-        """GET /files/models ΓåÆ list of {name, ...}"""
+        """GET /files/models -> list of {name, ...}"""
         resp = _send_get(MODELS_ROUTE, self.token)
         if resp.status_code == 200:
             data = resp.json()
@@ -176,7 +176,7 @@ class FileService:
         return [m["name"] for m in self.list_models()]
 
     def upload_model(self, model_path: str) -> bool:
-        """POST /files/models (multipart) ΓåÆ {upload: true/false}"""
+        """POST /files/models (multipart) -> {upload: true/false}"""
         if not os.path.exists(model_path):
             raise CloudAPIError(f"Fichier introuvable: {model_path}")
         with open(model_path, "rb") as f:
@@ -209,7 +209,7 @@ class FileService:
 
 
 # ---------------------------------------------------------------------------
-# Stm32AiService  ΓåÆ  {BASE_URL}api/{version}/stm32ai/
+# Stm32AiService  ->  {BASE_URL}api/{version}/stm32ai/
 # ---------------------------------------------------------------------------
 
 def _stm32ai_base(version: str) -> str:
@@ -236,7 +236,7 @@ class Stm32AiService:
         compression: str = COMPRESSION_DEFAULT,
         verbosity: int = 1,
     ) -> str:
-        """POST multipart form with args JSON ΓåÆ runtimeId.
+        """POST multipart form with args JSON -> runtimeId.
 
         Args documented in ST Edge AI Core 4.0/command_line_interface.html:
           model        : filename as uploaded on cloud
@@ -292,7 +292,7 @@ class Stm32AiService:
 
 
 # ---------------------------------------------------------------------------
-# BenchmarkService  ΓåÆ  {BASE_URL}api/benchmark/
+# BenchmarkService  ->  {BASE_URL}api/benchmark/
 # ---------------------------------------------------------------------------
 
 _MPU_KEYWORDS = ("MP2", "MP1", "MP257", "MP131", "LINUX", "MPU")
@@ -371,7 +371,7 @@ class BenchmarkService:
         self.last_trigger = {}
 
     def list_boards(self) -> dict:
-        """GET /benchmark/boards ΓåÆ dict of board_name ΓåÆ board_info"""
+        """GET /benchmark/boards -> dict of board_name -> board_info"""
         resp = _send_get(BENCHMARK_BOARDS_ROUTE, self.token)
         return resp.json() if resp.status_code == 200 else {}
 
@@ -386,7 +386,7 @@ class BenchmarkService:
         extra_options: dict = None,
         run_id: str = "",
     ) -> str:
-        """POST /benchmark/benchmark/{board} ΓåÆ benchmarkId
+        """POST /benchmark/benchmark/{board} -> benchmarkId
 
         Payload mirrors ST SDK BenchmarkService.trigger_benchmark():
           model      : filename
@@ -722,10 +722,10 @@ def parse_analyze_result(data: dict) -> dict:
     """Extract memory/MACC/params from analyze result.
 
     Fields from command_line_interface.html:
-      weights (ro)    ΓåÆ ROM/Flash in bytes
-      activations (rw)ΓåÆ RAM in bytes
-      macc            ΓåÆ Multiply-Accumulate ops
-      params #        ΓåÆ number of parameters
+            weights (ro)    -> ROM/Flash in bytes
+            activations (rw)-> RAM in bytes
+            macc            -> Multiply-Accumulate ops
+            params #        -> number of parameters
     """
     report = data.get("report") or {}
     graph  = data.get("graph")  or {}
@@ -784,14 +784,14 @@ def parse_benchmark_result(result: dict) -> dict:
     """Extract inference time, memory, and accuracy from benchmark result.
 
     State progression (from benchmark_service.py + doc):
-      waiting_for_build ΓåÆ in_queue ΓåÆ generating_sources ΓåÆ copying_sources
-      ΓåÆ loading_sources ΓåÆ building ΓåÆ validation ΓåÆ done
+            waiting_for_build -> in_queue -> generating_sources -> copying_sources
+            -> loading_sources -> building -> validation -> done
 
     Result fields from cloud.py + evaluation_metrics.html:
-      exec_time.duration_ms  ΓåÆ inference time in ms
-      exec_time.cycles        ΓåÆ CPU cycles
-      memory_footprint.*      ΓåÆ memory breakdown
-      val_metrics[].acc       ΓåÆ accuracy
+            exec_time.duration_ms  -> inference time in ms
+            exec_time.cycles       -> CPU cycles
+            memory_footprint.*     -> memory breakdown
+            val_metrics[].acc      -> accuracy
     """
     benchmark      = result.get("benchmark", {})
     info           = benchmark.get("info")
@@ -875,7 +875,7 @@ def parse_mpu_benchmark_result(result: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 class CloudClient:
-    """Orchestrates upload ΓåÆ analyze ΓåÆ benchmark for one model."""
+    """Orchestrates upload -> analyze -> benchmark for one model."""
 
     def __init__(self, version: str = None):
         self.token    = get_bearer_token()

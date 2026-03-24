@@ -96,7 +96,7 @@ def plot_memory(df=None, board_filter=None):
 
 
 def plot_accuracy(df=None):
-    """Bar chart of model accuracy ΓÇö from val_metrics[].acc field."""
+    """Bar chart of model accuracy - from val_metrics[].acc field."""
     if df is None:
         df = load_results()
     if not _check_data(df):

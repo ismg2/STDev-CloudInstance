@@ -1,4 +1,4 @@
-﻿"""Batch benchmark module ΓÇö Interactive multi-selection for boards, optimizations, compressions."""
+﻿"""Batch benchmark module - Interactive multi-selection for boards, optimizations, compressions."""
 
 from app.config import OPTIMIZATION_OPTIONS, COMPRESSION_OPTIONS
 
@@ -73,7 +73,7 @@ def select_multiple_boards(boards: list) -> list:
         print(f"{'='*60}")
 
         for i, board in enumerate(boards, 1):
-            marker = " Γ£ô" if board in selected else ""
+            marker = " *" if board in selected else ""
             print(f"  [{i:2}] {board}{marker}")
 
         print(f"\n  [A] Selectionner TOUS les boards")
@@ -87,25 +87,25 @@ def select_multiple_boards(boards: list) -> list:
             return []
         elif choice == "OK":
             if not selected:
-                print("\n  ΓÜá Aucun board selectionne.")
+                print("\n  ! Aucun board selectionne.")
                 continue
             return selected
         elif choice == "A":
             selected = boards.copy()
-            print(f"  ΓåÆ {len(selected)} board(s) selectionne(s).")
+            print(f"  [OK] {len(selected)} board(s) selectionne(s).")
         elif choice == "C":
             selected = []
-            print("  ΓåÆ Selection effacee.")
+            print("  [OK] Selection effacee.")
         elif choice.isdigit():
             idx = int(choice) - 1
             if 0 <= idx < len(boards):
                 board = boards[idx]
                 if board in selected:
                     selected.remove(board)
-                    print(f"  ΓåÆ {board} retire de la selection.")
+                    print(f"  [OK] {board} retire de la selection.")
                 else:
                     selected.append(board)
-                    print(f"  ΓåÆ {board} ajoute a la selection.")
+                    print(f"  [OK] {board} ajoute a la selection.")
             else:
                 print("  Choix invalide.")
         else:
@@ -132,9 +132,9 @@ def select_multiple_options(title: str, options: dict, default_key: str) -> list
         print(f"{'='*60}")
 
         for i, (k, desc) in enumerate(options.items(), 1):
-            marker = " Γ£ô" if k in selected else ""
+            marker = " *" if k in selected else ""
             default_marker = " (defaut)" if k == default_key else ""
-            print(f"  [{i}] {k:<12} ΓÇö {desc}{default_marker}{marker}")
+            print(f"  [{i}] {k:<12} - {desc}{default_marker}{marker}")
 
         print(f"\n  [A] Selectionner TOUTES les options")
         print(f"  [D] Selectionner uniquement le defaut ({default_key})")
@@ -148,28 +148,28 @@ def select_multiple_options(title: str, options: dict, default_key: str) -> list
             return []
         elif choice == "OK":
             if not selected:
-                print("\n  ΓÜá Aucune option selectionnee.")
+                print("\n  ! Aucune option selectionnee.")
                 continue
             return selected
         elif choice == "A":
             selected = keys.copy()
-            print(f"  ΓåÆ {len(selected)} option(s) selectionnee(s).")
+            print(f"  [OK] {len(selected)} option(s) selectionnee(s).")
         elif choice == "D":
             selected = [default_key]
-            print(f"  ΓåÆ Seulement '{default_key}' selectionne.")
+            print(f"  [OK] Seulement '{default_key}' selectionne.")
         elif choice == "C":
             selected = []
-            print("  ΓåÆ Selection effacee.")
+            print("  [OK] Selection effacee.")
         elif choice.isdigit():
             idx = int(choice) - 1
             if 0 <= idx < len(keys):
                 key = keys[idx]
                 if key in selected:
                     selected.remove(key)
-                    print(f"  ΓåÆ '{key}' retire de la selection.")
+                    print(f"  [OK] '{key}' retire de la selection.")
                 else:
                     selected.append(key)
-                    print(f"  ΓåÆ '{key}' ajoute a la selection.")
+                    print(f"  [OK] '{key}' ajoute a la selection.")
             else:
                 print("  Choix invalide.")
         else:
@@ -288,7 +288,7 @@ def interactive_batch_benchmark(core_version: str = ""):
     print(f"  Versions Core  : {len(selected_versions)}")
     print(f"  Optimisations  : {len(optimizations)}")
     print(f"  Compressions   : {len(compressions)}")
-    print(f"  {'ΓöÇ'*58}")
+    print(f"  {'-'*58}")
     print(f"  TOTAL BENCHMARKS : {total_runs}")
     print(f"{'='*60}")
 
@@ -370,7 +370,7 @@ def run_batch_benchmark(core_version: str = ""):
     error_count = 0
 
     print(f"\n{'='*60}")
-    print(f"  EXECUTION DU BATCH ΓÇö {total} benchmarks")
+    print(f"  EXECUTION DU BATCH - {total} benchmarks")
     print(f"{'='*60}\n")
 
     start_time = datetime.datetime.now()
@@ -434,7 +434,7 @@ def run_batch_benchmark(core_version: str = ""):
 
             except Exception as e:
                 error_count += 1
-                print(f"\n  Γ¥î [{i}/{total}] {task_name}")
+                print(f"\n  [ERR] [{i}/{total}] {task_name}")
                 print(f"     ERREUR: {str(e)[:80]}")
                 trigger = getattr(client.bench_svc, "last_trigger", {}) or {}
                 route = trigger.get("route", "")

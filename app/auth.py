@@ -4,10 +4,10 @@ Implements the exact OAuth2/SSO login flow used by ST's official tools.
 Source reference: STMicroelectronics/stm32ai-modelzoo-services login_service.py
 
 Flow:
-  1. GET  {SSO_URL}/as/authorization.oauth2  ΓåÆ HTML login page
-  2. POST {login_url} with username, password, lt, _eventId=Login ΓåÆ redirects
+    1. GET  {SSO_URL}/as/authorization.oauth2  -> HTML login page
+    2. POST {login_url} with username, password, lt, _eventId=Login -> redirects
   3. Follow redirects until reaching {CALLBACK_URL}?code=...
-  4. POST {USER_SERVICE_URL}/login/callback with redirect_url + code ΓåÆ tokens
+    4. POST {USER_SERVICE_URL}/login/callback with redirect_url + code -> tokens
   5. Tokens saved to ~/.stmai_token as JSON
 
 Token refresh:
@@ -131,7 +131,7 @@ def _login(username: str, password: str) -> dict:
     """
     s = _make_session()
 
-    # Step 1 ΓÇô Initiate OAuth2 authorization request
+    # Step 1 - Initiate OAuth2 authorization request
     resp = s.get(
         url=f"{SSO_URL}/as/authorization.oauth2",
         params={
@@ -146,7 +146,7 @@ def _login(username: str, password: str) -> dict:
     )
     page = resp.text
 
-    # Step 2 ΓÇô Parse the CAS login form
+    # Step 2 - Parse the CAS login form
     form_match = re.search(r'<form\s+.*?\s+action="(.*?)"', page, re.DOTALL)
     if not form_match:
         raise RuntimeError("Impossible de trouver le formulaire de login ST SSO.")
@@ -163,7 +163,7 @@ def _login(username: str, password: str) -> dict:
     parsed = urlparse(resp.url)
     login_url = urljoin(parsed.scheme + "://" + parsed.netloc, form_action)
 
-    # Step 3 ΓÇô Submit credentials
+    # Step 3 - Submit credentials
     resp = s.post(
         url=login_url,
         data={
@@ -183,7 +183,7 @@ def _login(username: str, password: str) -> dict:
         if re.search(r"You have exceeded 5 login attempts", resp.text):
             raise PermissionError("Compte bloque apres 5 tentatives echouees.")
 
-    # Step 4 ΓÇô Follow redirects until we reach our callback URL
+    # Step 4 - Follow redirects until we reach our callback URL
     redirect = resp.headers.get("Location", "")
     is_ready = False
     while not is_ready:
@@ -194,14 +194,14 @@ def _login(username: str, password: str) -> dict:
         else:
             is_ready = True
 
-    # Step 5 ΓÇô Extract authorization code from callback URL
+    # Step 5 - Extract authorization code from callback URL
     query  = urlparse(redirect).query
     params = parse_qs(query)
     if "code" not in params:
         raise RuntimeError("Code d'autorisation absent de la URL de callback.")
     auth_code = params["code"][0]
 
-    # Step 6 ΓÇô Exchange code for tokens
+    # Step 6 - Exchange code for tokens
     resp = s.post(
         url=LOGIN_CALLBACK_ROUTE,
         data={
@@ -244,9 +244,9 @@ def get_bearer_token() -> str:
     """Return a valid Bearer access token, refreshing or logging in as needed.
 
     Priority:
-      1. Cached non-expired token  ΓåÆ return as-is
-      2. Cached expired token      ΓåÆ try refresh
-      3. No token / refresh failed ΓåÆ interactive login
+            1. Cached non-expired token  -> return as-is
+            2. Cached expired token      -> try refresh
+            3. No token / refresh failed -> interactive login
     """
     token = _read_token()
 

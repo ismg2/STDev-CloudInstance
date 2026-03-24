@@ -1,4 +1,4 @@
-﻿"""Results manager ΓÇö SQLite primary storage with CSV export compatibility."""
+﻿"""Results manager - SQLite primary storage with CSV export compatibility."""
 
 import csv
 import hashlib
@@ -305,7 +305,7 @@ def append_result(
 
     if EXPORT_CSV_ON_APPEND:
         export_results_to_csv(RESULTS_CSV)
-    print(f"  Resultat sauvegarde ΓåÆ {RESULTS_DB}")
+    print(f"  Resultat sauvegarde -> {RESULTS_DB}")
 
 
 def _load_results_from_sqlite() -> pd.DataFrame:

@@ -1,8 +1,8 @@
 ﻿#!/usr/bin/env python3
-"""CLI Model Zoo Benchmark ΓÇö ST Edge AI Developer Cloud.
+"""CLI Model Zoo Benchmark - ST Edge AI Developer Cloud.
 
-Script interactif en ligne de commande pour benchmarker des mod├¿les AI
-sur des boards STM32 r├⌐elles via l'API REST ST Edge AI Developer Cloud.
+Script interactif en ligne de commande pour benchmarker des modeles AI
+sur des boards STM32 reelles via l'API REST ST Edge AI Developer Cloud.
 
 ST Edge AI Core 4.0 supported:
   Frameworks : keras (.h5/.keras), tflite (.tflite), onnx (.onnx)
@@ -10,13 +10,13 @@ ST Edge AI Core 4.0 supported:
   Compression : none | lossless | low | medium | high
 
 Usage:
-  python main.py                  ΓåÆ Menu interactif guid├⌐
-  python main.py --benchmark      ΓåÆ Lancer un benchmark simple
-  python main.py --batch          ΓåÆ Batch benchmark (multi-selection)
-  python main.py --results        ΓåÆ Afficher les r├⌐sultats
-  python main.py --visualize      ΓåÆ Dashboard graphique
-  python main.py --models         ΓåÆ Lister les mod├¿les
-  python main.py --help           ΓåÆ Aide
+    python main.py                  -> Menu interactif guide
+    python main.py --benchmark      -> Lancer un benchmark simple
+    python main.py --batch          -> Batch benchmark (multi-selection)
+    python main.py --results        -> Afficher les resultats
+    python main.py --visualize      -> Dashboard graphique
+    python main.py --models         -> Lister les modeles
+    python main.py --help           -> Aide
 """
 
 import argparse
@@ -59,10 +59,10 @@ AVAILABLE_BOARDS = [
 ]
 
 BANNER = r"""
-  ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù
-  Γòæ       CLI Model Zoo Benchmark                        Γòæ
-  Γòæ       ST Edge AI Core 4.0 ΓÇö Developer Cloud          Γòæ
-  ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥
+    ========================================================
+    | CLI Model Zoo Benchmark                              |
+    | ST Edge AI Core 4.0 - Developer Cloud                |
+    ========================================================
 """
 
 
@@ -71,7 +71,7 @@ BANNER = r"""
 # ---------------------------------------------------------------------------
 
 def select_board(client=None) -> str:
-    """Interactive board selection ΓÇö fetches live list from cloud."""
+    """Interactive board selection - fetches live list from cloud."""
     boards = AVAILABLE_BOARDS
     if client:
         try:
@@ -93,7 +93,7 @@ def select_board(client=None) -> str:
             selected = boards[int(choice) - 1]
             if isinstance(selected, dict):
                 selected = selected.get("name", str(selected))
-            print(f"  ΓåÆ Board: {selected}")
+            print(f"  [OK] Board: {selected}")
             return selected
         print("  Choix invalide.")
 
@@ -104,8 +104,8 @@ def select_option(title: str, options: dict, default: str) -> str:
     keys = list(options.keys())
     for i, (k, desc) in enumerate(options.items(), 1):
         marker = " (defaut)" if k == default else ""
-        print(f"    [{i}] {k:<12} ΓÇö {desc}{marker}")
-    print(f"    [Entr├⌐e] Garder le defaut ({default})")
+        print(f"    [{i}] {k:<12} - {desc}{marker}")
+    print(f"    [Entree] Garder le defaut ({default})")
 
     choice = input(f"  Choix > ").strip()
     if not choice:
@@ -299,7 +299,7 @@ def build_core_options_for_board(board_name: str, simple_preferences: dict) -> d
 # ---------------------------------------------------------------------------
 
 def run_benchmark(core_version: str = ""):
-    """Full benchmark workflow: select models ΓåÆ board ΓåÆ options ΓåÆ run ΓåÆ save."""
+    """Full benchmark workflow: select models -> board -> options -> run -> save."""
     print("\n  === LANCEMENT D'UN BENCHMARK ===\n")
 
     # 1. Select models
@@ -366,11 +366,11 @@ def run_benchmark(core_version: str = ""):
 
     # 6. Confirm
     print(f"\n  Etape 5/5 : Confirmation")
-    print(f"  ΓåÆ {len(models)} modele(s) | Board: {board}")
-    print(f"  ΓåÆ Core version: {selected_version}")
-    print(f"  ΓåÆ Optimization: {optimization} | Compression: {compression}")
+    print(f"  [OK] {len(models)} modele(s) | Board: {board}")
+    print(f"  [OK] Core version: {selected_version}")
+    print(f"  [OK] Optimization: {optimization} | Compression: {compression}")
     print(
-        "  ΓåÆ Core options: "
+        "  [OK] Core options: "
         f"target={core_options.get('target')}, "
         f"st_neural_art={core_options.get('st_neural_art') or 'none'}, "
         f"split_weights={core_options.get('split_weights')}, "
@@ -387,7 +387,7 @@ def run_benchmark(core_version: str = ""):
 
     for i, model in enumerate(models, 1):
         print(f"\n  [{i}/{len(models)}] {model['name']}")
-        print(f"  {'ΓöÇ'*45}")
+        print(f"  {'-'*45}")
         try:
             metrics = client.run_benchmark(
                 model["path"], board,
@@ -433,7 +433,7 @@ def run_benchmark(core_version: str = ""):
             r = metrics.get("ram_ko", "N/A")
             o = metrics.get("rom_ko", "N/A")
             a = metrics.get("accuracy", "N/A")
-            print(f"  OK ΓÇö Inference: {t}ms | RAM: {r}Ko | ROM: {o}Ko | Accuracy: {a}")
+            print(f"  OK - Inference: {t}ms | RAM: {r}Ko | ROM: {o}Ko | Accuracy: {a}")
 
         except Exception as e:
             error_count += 1
@@ -626,7 +626,7 @@ def main_menu():
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="CLI Model Zoo Benchmark ΓÇö ST Edge AI Core 4.0",
+        description="CLI Model Zoo Benchmark - ST Edge AI Core 4.0",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples:
