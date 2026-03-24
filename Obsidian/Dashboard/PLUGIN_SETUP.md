@@ -15,12 +15,12 @@ Optional plugins (add only if needed):
 
 ## Configure Templater
 1. Settings -> Templater.
-2. Template folder location: Obsidian/03-Templates
+2. Template folder location: Obsidian/Templates
 3. Enable "Trigger Templater on new file creation".
 
 ## Configure QuickAdd (optional)
 Create one macro:
-- New Requirement: create note in Obsidian/01-Requirements from REQUIREMENT_TEMPLATE.md
+- New Requirement: create note in Obsidian/Requirements from REQUIREMENT_TEMPLATE.md
 
 ## Dataview sanity check
 Open [BACKLOG.md](BACKLOG.md). If tables render, Dataview is active.

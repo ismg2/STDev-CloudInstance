@@ -5,7 +5,7 @@ Donner a une IA de reprise une vue immediate de "ou trouver quoi" dans ce repo.
 
 ## Core Context Files
 - Documentation/Project/Context/PROJECT_CONTEXT.md: contexte produit complet, architecture, endpoints, workflow.
-- Documentation/Project/Planning/DEVELOPMENT_PLAN.md: plan historique des sessions.
+- Documentation/Project/Planning/PROJECT_HISTORY.md: plan historique des sessions.
 - Documentation/Project/AI/AI_HANDOFF.md: etat technique actuel, conventions, commandes utiles.
 
 ## ST Documentation Sources

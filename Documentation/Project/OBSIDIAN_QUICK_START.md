@@ -11,14 +11,14 @@ This is the minimal version to avoid complexity.
 - Minimal files only
 
 ## Quick Navigation
-- Start here dashboard: [Obsidian/00-Dashboard/START_HERE.md](../../Obsidian/00-Dashboard/START_HERE.md)
-- Backlog dashboard: [Obsidian/00-Dashboard/BACKLOG.md](../../Obsidian/00-Dashboard/BACKLOG.md)
-- Requirement template: [Obsidian/03-Templates/REQUIREMENT_TEMPLATE.md](../../Obsidian/03-Templates/REQUIREMENT_TEMPLATE.md)
+- Start here dashboard: [Obsidian/Dashboard/START_HERE.md](../../Obsidian/Dashboard/START_HERE.md)
+- Backlog dashboard: [Obsidian/Dashboard/BACKLOG.md](../../Obsidian/Dashboard/BACKLOG.md)
+- Requirement template: [Obsidian/Templates/REQUIREMENT_TEMPLATE.md](../../Obsidian/Templates/REQUIREMENT_TEMPLATE.md)
 
 ## Folder Architecture (Option B)
-- [Obsidian/00-Dashboard](../../Obsidian/00-Dashboard)
-- [Obsidian/01-Requirements](../../Obsidian/01-Requirements)
-- [Obsidian/03-Templates](../../Obsidian/03-Templates)
+- [Obsidian/Dashboard](../../Obsidian/Dashboard)
+- [Obsidian/Requirements](../../Obsidian/Requirements)
+- [Obsidian/Templates](../../Obsidian/Templates)
 
 ## Plugins to install
 Install these community plugins in Obsidian:
@@ -31,7 +31,7 @@ Optional:
 2. Kanban
 
 Plugin setup guide:
-- [Obsidian/00-Dashboard/PLUGIN_SETUP.md](../../Obsidian/00-Dashboard/PLUGIN_SETUP.md)
+- [Obsidian/Dashboard/PLUGIN_SETUP.md](../../Obsidian/Dashboard/PLUGIN_SETUP.md)
 
 ## Daily operating loop
 1. Create requirement note from template.
@@ -41,5 +41,5 @@ Plugin setup guide:
 5. Update release note and close requirement.
 
 Detailed workflow references:
-- [Documentation/Project/TUTORIAL_REQUIREMENT_TO_RELEASE.md](TUTORIAL_REQUIREMENT_TO_RELEASE.md)
+- [Documentation/Project/REQUIREMENT_TO_RELEASE_GUIDE.md](REQUIREMENT_TO_RELEASE_GUIDE.md)
 - [Documentation/Project/Planning/REQUIREMENTS_WORKFLOW.md](Planning/REQUIREMENTS_WORKFLOW.md)

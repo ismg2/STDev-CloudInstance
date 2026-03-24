@@ -30,8 +30,8 @@ CLI Python pour lancer des benchmarks de modeles AI sur des boards STM32 via ST 
   5. Finaliser release notes puis PR release/vX.Y -> main
 
 ## Workflow Requirements (Step-by-Step)
-- Tutorial complet: Documentation/Project/TUTORIAL_REQUIREMENT_TO_RELEASE.md
-- Tutorial Obsidian (Option B): Documentation/Project/OBSIDIAN_OPTION_B_TUTORIAL.md
+- Guide complet: Documentation/Project/REQUIREMENT_TO_RELEASE_GUIDE.md
+- Guide Obsidian (demarrage rapide): Documentation/Project/OBSIDIAN_QUICK_START.md
 - Backlog requirements: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
 - Process complet: Documentation/Project/Planning/REQUIREMENTS_WORKFLOW.md
 - Roadmap versions: Documentation/Project/Planning/VERSION_ROADMAP.md
@@ -87,11 +87,11 @@ python run_ci_tests.py
 - Logs benchmark JSONL: resultats/logs/benchmarks.jsonl
 
 ## Organisation Documentation
-- Index central: Documentation/Project/INDEX.md
+- Point d'entree documentation: Documentation/Project/START_HERE.md
 - Handoff IA: Documentation/Project/AI/AI_HANDOFF.md
 - Skills + contexte IA: Documentation/Project/AI/SKILLS_AND_CONTEXT.md
 - Contexte projet detaille: Documentation/Project/Context/PROJECT_CONTEXT.md
-- Plan de developpement: Documentation/Project/Planning/DEVELOPMENT_PLAN.md
+- Historique projet: Documentation/Project/Planning/PROJECT_HISTORY.md
 - Backlog requirements: Documentation/Project/Planning/REQUIREMENTS_BACKLOG.md
 - Workflow requirements: Documentation/Project/Planning/REQUIREMENTS_WORKFLOW.md
 - Roadmap versions: Documentation/Project/Planning/VERSION_ROADMAP.md
@@ -118,7 +118,9 @@ STDev-CloudInstance/
 |-- resultats/
 |-- Documentation/
 |   |-- Project/
-|   |   |-- INDEX.md
+|   |   |-- START_HERE.md
+|   |   |-- REQUIREMENT_TO_RELEASE_GUIDE.md
+|   |   `-- OBSIDIAN_QUICK_START.md
 |   |   |-- AI/
 |   |   |   |-- AI_HANDOFF.md
 |   |   |   `-- SKILLS_AND_CONTEXT.md
@@ -128,7 +130,7 @@ STDev-CloudInstance/
 |   |   |   |-- CHANGELOG.md
 |   |   |   `-- v1.0.0.md
 |   |   `-- Planning/
-|   |       |-- DEVELOPMENT_PLAN.md
+|   |       |-- PROJECT_HISTORY.md
 |   |       |-- REQUIREMENTS_BACKLOG.md
 |   |       |-- REQUIREMENTS_WORKFLOW.md
 |   |       `-- VERSION_ROADMAP.md
@@ -147,8 +149,8 @@ STDev-CloudInstance/
 
 ## Notes Pour Reprise IA
 Pour une reprise rapide par une autre IA:
-1. Lire Documentation/Project/INDEX.md
-2. Lire Documentation/Project/TUTORIAL_REQUIREMENT_TO_RELEASE.md
+1. Lire Documentation/Project/START_HERE.md
+2. Lire Documentation/Project/REQUIREMENT_TO_RELEASE_GUIDE.md
 3. Lire Documentation/Project/AI/AI_HANDOFF.md
 4. Executer python run_ci_tests.py
 5. Continuer en gardant SQLite comme source de verite

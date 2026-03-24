@@ -50,7 +50,7 @@ CLI Python pour benchmarker des modeles AI sur le ST Edge AI Developer Cloud, av
 - Garder les choix compute mode visibles pour utilisateur (demande explicite).
 
 ## Where To Start If You Continue Development
-1. Lire Documentation/Project/INDEX.md
+1. Lire Documentation/Project/START_HERE.md
 2. Lire Documentation/Project/AI/SKILLS_AND_CONTEXT.md
 3. Valider l'etat avec python run_ci_tests.py
 4. Appliquer changements incrementaux avec tests associes

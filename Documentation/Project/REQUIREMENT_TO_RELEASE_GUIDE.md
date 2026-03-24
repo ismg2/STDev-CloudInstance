@@ -1,4 +1,4 @@
-# Tutorial: Requirement to Release Workflow
+# Requirement to Release Guide
 
 This guide explains exactly how to go from a new idea to implementation, regression testing, PR, and release.
 
@@ -28,7 +28,7 @@ This guide explains exactly how to go from a new idea to implementation, regress
 
 ## 1. Entry Point
 Start from the project index:
-- [Documentation/Project/INDEX.md](INDEX.md)
+- [Documentation/Project/START_HERE.md](START_HERE.md)
 
 Core workflow reference:
 - [Documentation/Project/Planning/REQUIREMENTS_WORKFLOW.md](Planning/REQUIREMENTS_WORKFLOW.md)
@@ -101,11 +101,11 @@ python run_ci_tests.py
 Use these tags in Decision Notes and optionally commit messages:
 - `TODO-REQ-<ID>-DISCUSS`
 - `TODO-REQ-<ID>-DECIDE`
-- `TODO-REQ-<ID>-IMPLEMENT
-- `TODO-REQ-<ID>-TEST
-- `TODO-REQ-<ID>-DOC
-- `TODO-REQ-<ID>-PR
-- `TODO-REQ-<ID>-RELEASE
+- `TODO-REQ-<ID>-IMPLEMENT`
+- `TODO-REQ-<ID>-TEST`
+- `TODO-REQ-<ID>-DOC`
+- `TODO-REQ-<ID>-PR`
+- `TODO-REQ-<ID>-RELEASE`
 
 Example:
 - TODO-REQ-120-DISCUSS
